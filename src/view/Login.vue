@@ -96,9 +96,34 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import users from '../data/user.json'
 
+const router = useRouter()
 
 const showPassword = ref(false)
-const form = reactive({ email: '', password: '', remember: false })
-const handleLogin = () => console.log('Đăng nhập với:', form)
+const form = reactive({
+    email: '',
+    password: '',
+    remember: false
+})
+
+const handleLogin = () => {
+
+    const user = users.find(u => u.email === form.email && u.password === form.password);
+
+    if (user) {
+        localStorage.setItem('user-token', 'mock-jwt-token-12345');
+
+        localStorage.setItem('user-info', JSON.stringify(user));
+
+        const redirectPath = router.query.redirect || '/';
+
+        alert(`Chào mừng ${user.name} quay trở lại!`);
+        router.push(redirectPath);
+    } else {
+        alert('Email hoặc mật khẩu không chính xác. Vui lòng thử lại!');
+    }
+};
+
 </script>

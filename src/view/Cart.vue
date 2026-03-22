@@ -100,11 +100,11 @@
               </div>
             </div>
 
-            <button
+            <router-link to="/checkout"
               class="btn btn-checkout w-100 py-3 rounded-pill fw-bold text-white d-flex align-items-center justify-content-center gap-2">
               Tiến hành thanh toán
               <i class="bi bi-arrow-right"></i>
-            </button>
+            </router-link>
 
             <div class="mt-4 d-flex flex-column gap-2">
               <div class="extra-small text-muted d-flex align-items-center gap-2 fw-bold opacity-75">
@@ -122,37 +122,62 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import books from '../data/products.json'
+import { ref, computed, onMounted } from 'vue'
 
-const cartItems = ref(
-  books.slice(0, 3).map(b => ({
-    id: b.id,
-    title: b.title,
-    author: b.author,
-    category: b.category,
-    price: b.salePrice,
-    quantity: 1,
-    image: b.imageUrl,
-    format: b.format,
-    status: b.status,
-  }))
-)
+
+const cartItems = ref([])
+
+
+const loadCart = () => {
+  const data = localStorage.getItem('cart')
+  cartItems.value = data ? JSON.parse(data) : []
+}
+
+const saveCart = () => {
+  localStorage.setItem('cart', JSON.stringify(cartItems.value))
+
+  window.dispatchEvent(new Event('storage'))
+}
 
 const shipping = 30000
+
+
 const subtotal = computed(() =>
-  cartItems.value.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  cartItems.value.reduce((acc, item) => {
+    const price = Number(item.price) || 0
+    const qty = Number(item.quantity) || 0
+    return acc + (price * qty)
+  }, 0)
 )
-const total = computed(() => subtotal.value + shipping)
+const total = computed(() => subtotal.value + (cartItems.value.length > 0 ? shipping : 0))
 
 const updateQty = (id, delta) => {
   const item = cartItems.value.find(i => i.id === id)
-  if (item) item.quantity = Math.max(1, item.quantity + delta)
+  if (item) {
+    const newQty = item.quantity + delta
+    if (newQty >= 1) {
+      item.quantity = newQty
+      saveCart()
+    }
+  }
 }
+
 const removeItem = (id) => {
-  cartItems.value = cartItems.value.filter(i => i.id !== id)
+  if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
+    cartItems.value = cartItems.value.filter(i => i.id !== id)
+    saveCart()
+  }
 }
-const formatPrice = (p) => new Intl.NumberFormat('vi-VN').format(p) + 'đ'
+
+const formatPrice = (p) => {
+  const value = Number(p) || 0
+  return value.toLocaleString('vi-VN') + 'đ'
+}
+
+
+onMounted(() => {
+  loadCart()
+})
 </script>
 
 <style scoped>
