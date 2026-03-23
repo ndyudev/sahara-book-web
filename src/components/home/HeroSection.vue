@@ -17,7 +17,7 @@
                         Tuyển chọn những cuốn sách hay và truyền cảm hứng nhất từ khắp nơi trên thế giới,
                         mang đến trải nghiệm đọc tuyệt vời ngay tại nhà bạn.
                     </p>
-                    <RouterLink :to="`/category/${slug}`"
+                    <RouterLink :to="`/product`"
                         class="btn btn-light btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg hover-scale">
                         Khám phá ngay
                     </RouterLink>
