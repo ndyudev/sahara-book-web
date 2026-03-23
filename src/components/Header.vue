@@ -20,85 +20,131 @@
               Danh mục
               <i class="bi bi-chevron-down nb-chevron" :class="{ 'nb-rotated': isCategoryOpen }"></i>
             </a>
-
             <div class="nb-mega-menu" v-show="isCategoryOpen">
               <div class="nb-mega-inner">
                 <div class="nb-mega-col" v-for="group in categories" :key="group.title">
                   <p class="nb-mega-title">{{ group.title }}</p>
-                  <router-link :to="`/product`" v-for="item in group.items" :key="item.label" class="nb-mega-item"
+                  <RouterLink :to="`/product`" v-for="item in group.items" :key="item.label" class="nb-mega-item"
                     @click="isCategoryOpen = false">
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                  </router-link>
+                  </RouterLink>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
 
         <ul class="navbar-nav ms-auto align-items-center flex-row gap-3">
-
           <li class="nav-item position-relative">
-            <router-link to="/cart" class="btn btn-link nb-variant p-0">
+            <RouterLink to="/cart" class="btn btn-link nb-variant p-0">
               <i class="bi bi-cart fs-5"></i>
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill nb-badge">0</span>
-            </router-link>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill nb-badge">{{ cartCount
+              }}</span>
+            </RouterLink>
           </li>
 
           <li class="nav-item position-relative" ref="dropdownRef">
-            <button class="nb-btn-account" @click="isOpen = !isOpen">
-              <i class="bi bi-person fs-5"></i>
-              <span>Tài khoản</span>
-              <i class="bi bi-chevron-down nb-chevron" :class="{ 'nb-rotated': isOpen }"></i>
+            <button class="nb-btn-account" :class="{ 'nb-logged-in': isLoggedIn }" @click="isOpen = !isOpen">
+              <template v-if="isLoggedIn">
+                <div class="nb-avatar-nav">
+                  {{ user.name.charAt(0).toUpperCase() }}
+                </div>
+                <span class="d-none d-xl-block ms-2">{{ user.name }}</span>
+              </template>
+              <template v-else>
+                <i class="bi bi-person fs-5"></i>
+                <span>Tài khoản</span>
+              </template>
+              <i class="bi bi-chevron-down nb-chevron ms-1" :class="{ 'nb-rotated': isOpen }"></i>
             </button>
 
             <div class="nb-dropdown" v-show="isOpen">
-              <div class="nb-dd-header">
-                <div class="nb-avatar">
-                  <router-link to="/profile"></router-link>
+              <template v-if="isLoggedIn">
+                <div class="nb-dd-header-new">
+                  <div class="nb-avatar-large">{{ user.name.charAt(0).toUpperCase() }}</div>
+                  <div class="ms-3 overflow-hidden">
+                    <p class="nb-dd-name">Xin chào, {{ user.name }}</p>
+                    <p class="nb-dd-email">{{ user.email }}</p>
+                  </div>
                 </div>
-                <div>
-                  <p class="nb-dd-name">Xin chào!</p>
-                  <p class="nb-dd-email">Đăng nhập để tiếp tục</p>
+                <div class="nb-dd-body">
+                  <RouterLink to="/profile" class="nb-dd-item-new" @click="isOpen = false">
+                    <i class="bi bi-person-circle"></i><span>Hồ sơ cá nhân</span>
+                  </RouterLink>
+                  <RouterLink to="/profile/wishlist" class="nb-dd-item-new" @click="isOpen = false">
+                    <i class="bi bi-heart"></i><span>Sản phẩm yêu thích</span>
+                  </RouterLink>
+                  <RouterLink to="/profile/orders" class="nb-dd-item-new" @click="isOpen = false">
+                    <i class="bi bi-bag-check"></i><span>Quản lý đơn hàng</span>
+                  </RouterLink>
+                  <div class="nb-dd-divider"></div>
+                  <a href="#" class="nb-dd-item-new text-danger" @click.prevent="handleLogout">
+                    <i class="bi bi-box-arrow-right"></i><span>Đăng xuất</span>
+                  </a>
                 </div>
-              </div>
+              </template>
 
-              <div class="nb-dd-divider"></div>
-
-              <router-link to="/login" class="nb-dd-item" @click="isOpen = false">
-                <i class="bi bi-box-arrow-in-right"></i><span>Đăng nhập</span>
-              </router-link>
-              <router-link to="/register" class="nb-dd-item" @click="isOpen = false">
-                <i class="bi bi-person-plus"></i><span>Đăng ký</span>
-              </router-link>
-
-              <div class="nb-dd-divider"></div>
-
-              <a href="#" class="nb-dd-item">
-                <i class="bi bi-heart"></i><span>Yêu thích</span>
-              </a>
-              <a href="#" class="nb-dd-item">
-                <i class="bi bi-bag"></i><span>Đơn hàng</span>
-              </a>
-
+              <template v-else>
+                <div class="p-4 text-center">
+                  <div class="nb-avatar-placeholder mb-3">
+                    <i class="bi bi-person text-secondary fs-2"></i>
+                  </div>
+                  <h6 class="fw-bold mb-1">Chào mừng bạn!</h6>
+                  <p class="text-muted small mb-3">Đăng nhập để nhận nhiều ưu đãi hơn</p>
+                  <RouterLink to="/login" class="btn btn-primary w-100 rounded-pill mb-2" @click="isOpen = false"
+                    style="background: #FF8C00; border: none;">Đăng nhập
+                  </RouterLink>
+                  <RouterLink to="/register" class="btn btn-outline-secondary w-100 rounded-pill small"
+                    @click="isOpen = false">Đăng ký tài khoản</RouterLink>
+                </div>
+              </template>
             </div>
           </li>
-
         </ul>
       </div>
     </div>
   </nav>
 </template>
-
 <script setup>
 import logo from '../assets/logo/logo.png'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const isOpen = ref(false)
 const isCategoryOpen = ref(false)
 const dropdownRef = ref(null)
 const categoryRef = ref(null)
+
+const user = ref(null)
+const isLoggedIn = computed(() => !!user.value)
+
+const checkUser = () => {
+  const data = localStorage.getItem('user-info')
+  user.value = data ? JSON.parse(data) : null
+}
+
+const handleLogout = () => {
+  if (confirm('Bạn muốn đăng xuất chứ?')) {
+    localStorage.removeItem('user-token')
+    localStorage.removeItem('user-info')
+    user.value = null
+    isOpen.value = false
+    router.push('/')
+  }
+}
+const cartCount = ref(0)
+
+const updateCartCount = () => {
+  const data = localStorage.getItem('cart')
+  if (data) {
+    const cart = JSON.parse(data)
+    cartCount.value = cart.reduce((total, item) => total + item.quantity, 0)
+  } else {
+    cartCount.value = 0
+  }
+}
 
 const categories = [
   {
@@ -141,16 +187,21 @@ const categories = [
 
 
 const handleClickOutside = (e) => {
-  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
-    isOpen.value = false
-  }
-  if (categoryRef.value && !categoryRef.value.contains(e.target)) {
-    isCategoryOpen.value = false
-  }
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) isOpen.value = false
+  if (categoryRef.value && !categoryRef.value.contains(e.target)) isCategoryOpen.value = false
 }
 
-onMounted(() => document.addEventListener('click', handleClickOutside))
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+
+  checkUser()
+  window.addEventListener('localstorage-changed', checkUser)
+
+  updateCartCount()
+  window.addEventListener('storage', updateCartCount)
+})
 onUnmounted(() => document.removeEventListener('click', handleClickOutside))
+
 </script>
 
 <style scoped>
@@ -158,7 +209,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   background: rgba(248, 249, 250, 0.7) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  z-index: 1000;
+  z-index: 9999;
 }
 
 .nb-logo {
@@ -220,91 +271,114 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   transform: rotate(180deg);
 }
 
-/* ── Account Dropdown ── */
 .nb-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 12px);
   right: 0;
-  width: 220px;
-  background: #fff;
-  border: 1px solid rgba(144, 77, 0, 0.12);
-  border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
   overflow: hidden;
-  z-index: 9999;
+  z-index: 1000;
 }
 
-.nb-dd-header {
+.nb-dd-header-new {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  background: rgba(255, 140, 0, 0.05);
+  padding: 20px;
+  background: #fff;
+  border-bottom: 1px solid #f8f9fa;
 }
 
-.nb-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #FF8C00;
+.nb-avatar-large {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FF8C00, #FFA500);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 800;
+  font-size: 1.2rem;
   flex-shrink: 0;
 }
 
 .nb-dd-name {
   font-family: 'Manrope', sans-serif;
   font-weight: 700;
-  font-size: 13px;
-  color: #191C1D;
+  font-size: 15px;
+  color: #1e293b;
   margin: 0;
 }
 
 .nb-dd-email {
-  font-size: 11px;
-  color: #94A3B8;
+  font-size: 12px;
+  color: #64748b;
   margin: 0;
 }
 
-.nb-dd-divider {
-  height: 1px;
-  background: rgba(144, 77, 0, 0.08);
-  margin: 4px 0;
+.nb-dd-body {
+  padding: 8px;
 }
 
-.nb-dd-item {
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
-  padding: 10px 16px !important;
-  font-family: 'Manrope', sans-serif !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  color: #191C1D !important;
-  background: transparent !important;
-  text-decoration: none !important;
-  cursor: pointer !important;
-  transition: background .15s !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
+.nb-dd-item-new {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  text-decoration: none;
+  border-radius: 12px;
+  transition: all 0.2s;
 }
 
-.nb-dd-item:hover {
-  background: rgba(255, 140, 0, 0.06) !important;
-  color: #FF8C00 !important;
+.nb-dd-item-new:hover {
+  background: #fff7ed;
+  color: #FF8C00;
 }
 
-.nb-dd-item i {
-  font-size: 15px;
-  color: #94A3B8 !important;
+.nb-dd-item-new i {
+  font-size: 18px;
+  color: #94a3b8;
 }
 
-.nb-dd-item:hover i {
-  color: #FF8C00 !important;
+.nb-dd-item-new:hover i {
+  color: #FF8C00;
+}
+
+.nb-btn-account.nb-logged-in {
+  background: #fff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px 6px 6px;
+}
+
+.nb-avatar-nav {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #FF8C00;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nb-avatar-placeholder {
+  width: 60px;
+  height: 60px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ── Mega Menu ── */
@@ -320,6 +394,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   z-index: 9999;
+
 }
 
 .nb-mega-inner {

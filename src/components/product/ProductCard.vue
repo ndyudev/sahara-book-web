@@ -1,18 +1,32 @@
 <template>
     <div class="product-card">
-        <div class="product-img-wrap">
-            <img :src="book.image" :alt="book.title" class="product-img" referrerpolicy="no-referrer" />
-            <span v-if="book.badge" class="product-badge" :class="book.badge === 'New' ? 'badge-new' : 'badge-sale'">
-                {{ book.badge }}
-            </span>
-        </div>
+        <RouterLink :to="`/product/${book.id}`" class="product-link">
+            <div class="product-img-wrap">
+                <img :src="book.imageUrl || book.image" :alt="book.title" class="product-img"
+                    referrerpolicy="no-referrer" />
+
+                <span v-if="book.badge" class="product-badge"
+                    :class="book.badge === 'NEW' ? 'badge-new' : 'badge-sale'">
+                    {{ book.badge }}
+                </span>
+            </div>
+        </RouterLink>
+
         <div class="product-info">
             <span class="product-category">{{ book.category }}</span>
             <p class="product-title">{{ book.title }}</p>
-            <p class="product-desc">{{ book.desc }}</p>
+            <p class="product-desc">{{ book.description }}</p>
+        </div>
+
+        <div class="product-info pt-0">
             <div class="product-footer">
-                <span class="product-price">{{ book.price }}</span>
-                <button class="product-cart-btn">
+                <div class="price-stack">
+                    <span class="product-price">{{ formatPrice(book.salePrice) }}</span>
+                    <span v-if="book.originalPrice > book.salePrice" class="product-price-old">
+                        {{ formatPrice(book.originalPrice) }}
+                    </span>
+                </div>
+                <button class="product-cart-btn" @click.stop="addToCart">
                     <i class="bi bi-bag-plus"></i>
                 </button>
             </div>
@@ -21,7 +35,40 @@
 </template>
 
 <script setup>
-defineProps({ book: { type: Object, required: true } })
+const props = defineProps({
+    book: { type: Object, required: true }
+})
+
+const addToCart = () => {
+    const cartData = localStorage.getItem('cart');
+    let cart = cartData ? JSON.parse(cartData) : [];
+
+    const index = cart.findIndex(item => item.id === props.book.id);
+
+    if (index !== -1) {
+        cart[index].quantity += 1;
+        // Cập nhật lại giá mới nhất nếu lỡ giá trong kho thay đổi
+        cart[index].price = Number(props.book.salePrice) || 0;
+    } else {
+        const newProduct = {
+            id: props.book.id,
+            title: props.book.title,
+            price: Number(props.book.salePrice) || 0,
+            image: props.book.imageUrl || props.book.image,
+            quantity: 1
+        };
+        cart.push(newProduct);
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    window.dispatchEvent(new Event('storage'));
+    alert(`Đã thêm "${props.book.title}" vào giỏ hàng!`);
+}
+
+const formatPrice = (p) => {
+    const value = Number(p) || 0
+    return value.toLocaleString('vi-VN') + 'đ'
+}
 </script>
 
 <style>
@@ -149,5 +196,21 @@ defineProps({ book: { type: Object, required: true } })
 .product-cart-btn:hover {
     background: #FF8C00;
     color: #fff;
+}
+
+.price-stack {
+    display: flex;
+    flex-direction: column;
+}
+
+.product-price-old {
+    font-size: 11px;
+    color: #94A3B8;
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
+.badge-new {
+    background: #FF8C00;
 }
 </style>

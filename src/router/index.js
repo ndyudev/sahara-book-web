@@ -6,6 +6,7 @@ import Login from "../view/Login.vue";
 import Product from "../view/Product.vue";
 import Register from "../view/Register.vue";
 import ProductDetail from "../view/ProductDetail.vue";
+import Checkout from "../view/Checkout.vue";
 
 const routes = [
   {
@@ -38,6 +39,12 @@ const routes = [
     name: "ProductDetail",
     component: ProductDetail,
   },
+  {
+    path: "/checkout",
+    name: "Checkout",
+    component: Checkout,
+    meta: { requiresAuth: true }
+  }
 ];
 
 const router = createRouter({
