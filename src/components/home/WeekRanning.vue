@@ -1,7 +1,6 @@
 <template>
     <section class="weekly-rankings">
 
-        <!-- Title -->
         <h2 class="rankings-title">Xếp hạng hàng tuần</h2>
 
         <div class="rankings-body">

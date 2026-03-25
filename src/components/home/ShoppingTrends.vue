@@ -1,7 +1,6 @@
 <template>
     <section class="shopping-trends">
 
-        <!-- Header -->
         <div class="trends-header">
             <h2 class="trends-title">Xu hướng mua sắm</h2>
         </div>
@@ -27,7 +26,7 @@
         </div>
 
         <div class="trends-footer">
-            <button class="see-more-btn">Xem thêm</button>
+            <router-link to="/product" class="see-more-btn">Xem thêm</router-link>
         </div>
 
     </section>
@@ -38,7 +37,6 @@
 </script>
 
 <style scoped>
-/* ── Section ── */
 .shopping-trends {
     display: flex;
     flex-direction: column;
@@ -47,7 +45,6 @@
     max-width: 1280px;
 }
 
-/* ── Header ── */
 .trends-header {
     display: flex;
     justify-content: space-between;
@@ -65,7 +62,6 @@
     margin: 0;
 }
 
-/* ── Tab Switcher ── */
 .tab-switcher {
     display: flex;
     align-items: center;
@@ -116,7 +112,6 @@
     transform: scale(1.05);
 }
 
-/* ── Image wrap ── */
 .trend-img-wrap {
     position: relative;
     background: #F3F4F5;
@@ -133,7 +128,6 @@
     transition: transform .4s ease;
 }
 
-/* ── Cart button ── */
 .cart-btn {
     position: absolute;
     right: 16px;
@@ -175,7 +169,6 @@
     text-overflow: ellipsis;
 }
 
-/* ── Rating ── */
 .trend-rating {
     display: flex;
     align-items: center;
@@ -195,7 +188,6 @@
     color: #191C1D;
 }
 
-/* ── Price ── */
 .trend-price {
     font-family: 'Inter', sans-serif;
     font-weight: 700;
@@ -205,7 +197,6 @@
     margin: 0;
 }
 
-/* ── Footer ── */
 .trends-footer {
     display: flex;
     justify-content: center;
@@ -213,20 +204,20 @@
 }
 
 .see-more-btn {
-    font-family: 'Inter', sans-serif;
+    text-decoration: none;
     font-weight: 700;
     font-size: 16px;
     line-height: 24px;
-    color: #191C1D;
-    background: #E1E3E4;
+    color: #0b0b0b;
+    background: #F3F4F5;
     border: none;
     border-radius: 12px;
     padding: 12px 40px;
     cursor: pointer;
-    transition: background .2s;
+
 }
 
 .see-more-btn:hover {
-    background: #d0d2d3;
+    background: #EDEEEF;
 }
 </style>

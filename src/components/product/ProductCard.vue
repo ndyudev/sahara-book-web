@@ -26,18 +26,60 @@
                         {{ formatPrice(book.originalPrice) }}
                     </span>
                 </div>
-                <button class="product-cart-btn" @click.stop="addToCart">
-                    <i class="bi bi-bag-plus"></i>
-                </button>
+
+                <div class="d-flex gap-2">
+                    <button class="product-wish-btn" :class="{ 'is-active': isWishlisted }"
+                        @click.stop="toggleWishlist">
+                        <i :class="isWishlisted ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                    </button>
+                    <button class="product-cart-btn" @click.stop="addToCart">
+                        <i class="bi bi-bag-plus"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 const props = defineProps({
     book: { type: Object, required: true }
 })
+const isWishlisted = ref(false)
+
+// Kiểm tra xem sản phẩm đã có trong danh sách yêu thích chưa
+const checkWishlistStatus = () => {
+    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]')
+    isWishlisted.value = wishlist.some(item => item.id === props.book.id)
+}
+
+onMounted(() => {
+    checkWishlistStatus()
+})
+
+const toggleWishlist = () => {
+    let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]')
+    const index = wishlist.findIndex(item => item.id === props.book.id)
+
+    if (index > -1) {
+        wishlist.splice(index, 1)
+        isWishlisted.value = false
+    } else {
+   
+        wishlist.push({
+            id: props.book.id,
+            name: props.book.title,
+            price: props.book.salePrice,
+            image: props.book.imageUrl || props.book.image
+        })
+        isWishlisted.value = true
+    }
+
+    localStorage.setItem('wishlist', JSON.stringify(wishlist))
+
+    window.dispatchEvent(new Event('storage'))
+}
 
 const addToCart = () => {
     const cartData = localStorage.getItem('cart');
@@ -47,7 +89,6 @@ const addToCart = () => {
 
     if (index !== -1) {
         cart[index].quantity += 1;
-        // Cập nhật lại giá mới nhất nếu lỡ giá trong kho thay đổi
         cart[index].price = Number(props.book.salePrice) || 0;
     } else {
         const newProduct = {
@@ -212,5 +253,42 @@ const formatPrice = (p) => {
 
 .badge-new {
     background: #FF8C00;
+}
+
+/* Nút yêu thích */
+.product-wish-btn {
+    width: 34px;
+    height: 34px;
+    background: rgba(239, 68, 68, 0.05);
+    /* Màu đỏ nhạt */
+    border: 1px solid rgba(239, 68, 68, 0.1);
+    border-radius: 8px;
+    color: #ef4444;
+    /* Màu đỏ trái tim */
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.product-wish-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    transform: scale(1.1);
+}
+
+.product-wish-btn.is-active {
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+}
+
+/* Điều chỉnh lại layout footer một chút */
+.product-footer {
+    display: flex;
+    align-items: flex-end;
+    /* Căn nút xuống dưới cùng */
+    justify-content: space-between;
 }
 </style>

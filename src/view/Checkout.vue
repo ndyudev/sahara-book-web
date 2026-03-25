@@ -17,7 +17,7 @@
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label fw-semibold small">Họ và tên</label>
-                                <input class="form-control co-input" v-model="form.name" placeholder="Họ và tên" />
+                                <input class="form-control co-input" v-model="form.fullname" placeholder="Họ và tên" />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small">Số điện thoại</label>
@@ -195,7 +195,7 @@ const discount = ref(0)
 const showToast = ref(false)
 
 const form = ref({
-    name: '',
+    fullname: '',
     phone: '',
     email: '',
     address: '',
@@ -229,7 +229,7 @@ onMounted(() => {
     const savedUser = localStorage.getItem('user-info')
     if (savedUser) {
         const user = JSON.parse(savedUser)
-        form.value.name = user.name || ''
+        form.value.fullname = user.fullname || ''
         form.value.phone = user.phone || ''
         form.value.email = user.email || ''
         form.value.address = user.address || ''
@@ -257,7 +257,6 @@ const applyCoupon = () => {
 }
 
 const placeOrder = () => {
-
     const token = localStorage.getItem('user-token')
     if (!token) {
         alert('Bạn cần đăng nhập để thực hiện đặt hàng!')
@@ -265,25 +264,50 @@ const placeOrder = () => {
         return
     }
 
-    if (!form.value.name || !form.value.phone || !form.value.address) {
+    if (!form.value.fullname || !form.value.phone || !form.value.address) {
         alert('Vui lòng nhập đầy đủ thông tin giao hàng!')
         return
     }
+    // Tạo đối tượng đơn hàng mới từ thông tin hiện tại
+    const newOrder = {
+        id: 'SAHARA-' + Date.now(), // Tạo mã đơn hàng duy nhất
+        date: new Date().toLocaleDateString('vi-VN'),
+        status: 'pending', // Trạng thái chờ xử lý
+        customerName: form.value.fullname,
+        address: form.value.address,
+        paymentMethod: form.value.payment === 'cod' ? 'Thanh toán khi nhận hàng' : 'Chuyển khoản ngân hàng',
+        shippingMethod: shippingOptions.find(o => o.value === form.value.shipping)?.name,
+        subtotal: subtotal.value,
+        shippingFee: shippingFee.value,
+        discount: discount.value,
+        total: total.value,
+        // Lưu danh sách item để hiển thị lại ở trang hóa đơn
+        books: cartItems.value.map(book => ({
+            id: book.id,
+            title: book.title,
+            price: book.price,
+            quantity: book.quantity,
+            imageUrl: book.imageUrl
+        }))
+    }
+    const existingOrders = JSON.parse(localStorage.getItem('user_orders')) || []
 
+    // Thêm đơn hàng mới vào đầu danh sách
+    existingOrders.unshift(newOrder)
+
+    // Lưu lại vào localStorage
+    localStorage.setItem('user_orders', JSON.stringify(existingOrders))
     showToast.value = true
 
-
+    // Xóa giỏ hàng sau khi đặt thành công
     localStorage.removeItem('cart')
-
     window.dispatchEvent(new Event('storage'))
-
 
     setTimeout(() => {
         showToast.value = false
-        setTimeout(() => {
-            router.push('/')
-        }, 400)
-    }, 2500)
+        // Chuyển hướng đến trang lịch sử đơn hàng hoặc trang hóa đơn vừa tạo
+        router.push('/profile/orders')
+    }, 2000)
 }
 const formatPrice = (p) => {
     const value = Number(p) || 0
@@ -314,7 +338,6 @@ const formatPrice = (p) => {
     flex-shrink: 0;
 }
 
-/* Input */
 .co-input {
     height: 50px;
     border: 1px solid #E2E8F0;

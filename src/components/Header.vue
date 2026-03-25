@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar navbar-expand-lg nb-glass shadow-sm">
+  <nav class="navbar navbar-expand-lg shadow-sm " style="z-index: 9999;">
     <div class="container-xl">
 
       <router-link to="/"><img :src="logo" alt="SaharaBook" height="36"></router-link>
@@ -47,10 +47,11 @@
           <li class="nav-item position-relative" ref="dropdownRef">
             <button class="nb-btn-account" :class="{ 'nb-logged-in': isLoggedIn }" @click="isOpen = !isOpen">
               <template v-if="isLoggedIn">
-                <div class="nb-avatar-nav">
-                  {{ user.name.charAt(0).toUpperCase() }}
+                <div class="nb-avatar-nav overflow-hidden">
+                  <img v-if="user.avatar" :src="user.avatar" class="w-100 h-100 object-fit-cover">
+                  <span v-else>{{ user?.fullname?.charAt(0)?.toUpperCase() }}</span>
                 </div>
-                <span class="d-none d-xl-block ms-2">{{ user.name }}</span>
+                <span class="d-none d-xl-block ms-2">{{ user.fullname }}</span>
               </template>
               <template v-else>
                 <i class="bi bi-person fs-5"></i>
@@ -61,10 +62,13 @@
 
             <div class="nb-dropdown" v-show="isOpen">
               <template v-if="isLoggedIn">
-                <div class="nb-dd-header-new">
-                  <div class="nb-avatar-large">{{ user.name.charAt(0).toUpperCase() }}</div>
+                <div class="nb-dd-header-new" v-if="isLoggedIn">
+                  <div class="nb-avatar-large overflow-hidden">
+                    <img v-if="user.avatar" :src="user.avatar" class="w-100 h-100 object-fit-cover">
+                    <span v-else>{{ user?.fullname?.charAt(0)?.toUpperCase() }}</span>
+                  </div>
                   <div class="ms-3 overflow-hidden">
-                    <p class="nb-dd-name">Xin chào, {{ user.name }}</p>
+                    <p class="nb-dd-name">Xin chào, {{ user.fullname }}</p>
                     <p class="nb-dd-email">{{ user.email }}</p>
                   </div>
                 </div>
@@ -195,261 +199,18 @@ onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 
   checkUser()
-  window.addEventListener('localstorage-changed', checkUser)
 
-  updateCartCount()
-  window.addEventListener('storage', updateCartCount)
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'user-info' || !e.key) {
+      checkUser()
+    }
+    updateCartCount()
+  })
 })
 onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
 </script>
 
 <style scoped>
-.nb-glass {
-  background: rgba(248, 249, 250, 0.7) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  z-index: 9999;
-}
 
-.nb-logo {
-  color: #FF8C00 !important;
-  text-decoration: none !important;
-  font-size: 1.75rem;
-  font-weight: 800;
-}
-
-.nb-search {
-  background-color: #f3f4f5 !important;
-  border: none !important;
-}
-
-.nb-search:focus {
-  background-color: #edeeef !important;
-  box-shadow: 0 0 0 0.25rem rgba(144, 77, 0, 0.25) !important;
-  outline: none !important;
-}
-
-.nb-variant {
-  color: #FF8C00 !important;
-  cursor: pointer;
-}
-
-.nb-badge {
-  background-color: #FF8C00 !important;
-  color: #fff !important;
-}
-
-.nb-btn-account {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #FF8C00;
-  color: #fff;
-  border: none;
-  border-radius: 50px;
-  padding: 8px 20px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  outline: none;
-}
-
-.nb-btn-account:focus,
-.nb-btn-account:active {
-  background: #FF8C00 !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.nb-chevron {
-  font-size: 12px;
-  transition: transform .2s;
-}
-
-.nb-rotated {
-  transform: rotate(180deg);
-}
-
-.nb-dropdown {
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-  width: 280px;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 20px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
-  overflow: hidden;
-  z-index: 1000;
-}
-
-.nb-dd-header-new {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-  background: #fff;
-  border-bottom: 1px solid #f8f9fa;
-}
-
-.nb-avatar-large {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #FF8C00, #FFA500);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
-
-.nb-dd-name {
-  font-family: 'Manrope', sans-serif;
-  font-weight: 700;
-  font-size: 15px;
-  color: #1e293b;
-  margin: 0;
-}
-
-.nb-dd-email {
-  font-size: 12px;
-  color: #64748b;
-  margin: 0;
-}
-
-.nb-dd-body {
-  padding: 8px;
-}
-
-.nb-dd-item-new {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #475569;
-  text-decoration: none;
-  border-radius: 12px;
-  transition: all 0.2s;
-}
-
-.nb-dd-item-new:hover {
-  background: #fff7ed;
-  color: #FF8C00;
-}
-
-.nb-dd-item-new i {
-  font-size: 18px;
-  color: #94a3b8;
-}
-
-.nb-dd-item-new:hover i {
-  color: #FF8C00;
-}
-
-.nb-btn-account.nb-logged-in {
-  background: #fff;
-  color: #1e293b;
-  border: 1px solid #e2e8f0;
-  padding: 6px 12px 6px 6px;
-}
-
-.nb-avatar-nav {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: #FF8C00;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.nb-avatar-placeholder {
-  width: 60px;
-  height: 60px;
-  background: #f1f5f9;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ── Mega Menu ── */
-.nb-mega-menu {
-  position: absolute;
-  top: calc(100% + 16px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 680px;
-  background: #fff;
-  border: 1px solid rgba(144, 77, 0, 0.12);
-  border-radius: 16px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-  overflow: hidden;
-  z-index: 9999;
-
-}
-
-.nb-mega-inner {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  padding: 8px;
-}
-
-.nb-mega-col {
-  padding: 16px 12px;
-  border-right: 1px solid rgba(144, 77, 0, 0.06);
-}
-
-.nb-mega-col:last-child {
-  border-right: none;
-}
-
-.nb-mega-title {
-  font-family: 'Manrope', sans-serif;
-  font-weight: 700;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: #FF8C00;
-  margin: 0 0 12px 8px;
-}
-
-.nb-mega-item {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  padding: 8px !important;
-  font-family: 'Manrope', sans-serif !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  color: #191C1D !important;
-  text-decoration: none !important;
-  border-radius: 8px !important;
-  transition: background .15s !important;
-  cursor: pointer !important;
-}
-
-.nb-mega-item:hover {
-  background: rgba(255, 140, 0, 0.07) !important;
-  color: #FF8C00 !important;
-}
-
-.nb-mega-item i {
-  font-size: 14px !important;
-  color: #94A3B8 !important;
-  width: 16px !important;
-  text-align: center !important;
-}
-
-.nb-mega-item:hover i {
-  color: #FF8C00 !important;
-}
 </style>

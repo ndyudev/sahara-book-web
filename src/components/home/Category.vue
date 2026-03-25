@@ -3,7 +3,7 @@
 
     <div class="categories-header">
       <h2 class="section-title">Danh mục</h2>
-      <RouterLink to="/category/:slug" class="see-all-link text-decoration-none">
+      <RouterLink to="/product" class="see-all-link text-decoration-none">
         Xem tất cả
         <i class="bi bi-arrow-right see-all-icon"></i>
       </RouterLink>
