@@ -1,7 +1,7 @@
 <template>
   <div class="product-layout">
     <FilterSidebar :filters="filters" :categoryOptions="categoryOptions" />
-    
+
     <main class="product-main">
       <div class="product-header">
         <div>
@@ -17,7 +17,7 @@
       </div>
 
       <ProductGrid :books="books" />
-      
+
       <ProductPg :pages="pages" :currentPage="currentPage" @changePage="currentPage = $event" />
     </main>
 
@@ -27,21 +27,16 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-
-// --- BƯỚC 1: LẤY DỮ LIỆU TỪ FILE JSON ---
-import allProducts from '../data/products.json' 
-
-// Khai báo biến 'books' chứa toàn bộ 10 cuốn sách
-const books = ref(allProducts) 
-
-// Khai báo biến 'suggestedBooks' lấy 3 cuốn đầu tiên để hiện ở cột bên phải
-const suggestedBooks = ref(allProducts.slice(0, 3)) 
-// ----------------------------------------
-
+import allProducts from '../data/products.json'
 import FilterSidebar from '../components/product/FilterSidebar.vue'
 import ProductGrid from '../components/product/ProductGrid.vue'
 import ProductPg from '../components/product/ProductPg.vue'
 import SgSidebar from '../components/product/SgSidebar.vue'
+
+const books = ref(allProducts)
+
+const suggestedBooks = ref(allProducts.slice(0, 3))
+
 
 const filters = reactive({
   search: '',
@@ -68,7 +63,6 @@ const pages = [1, 2, 3]
 </script>
 
 <style scoped>
-/* Code CSS giữ nguyên như cũ của bạn */
 .product-layout {
   display: grid;
   grid-template-columns: 260px 1fr 220px;

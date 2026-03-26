@@ -1,15 +1,13 @@
 <template>
     <div class="container-xl py-5">
         <div class="row g-4">
-
             <div class="col-12 col-lg-8">
                 <div class="d-flex flex-column gap-4">
                     <div class="checkout-card p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div class="d-flex align-items-center gap-2">
-                                <h5 class="mb-0 fw-bold">Thông tin vận chuyển</h5>
-                            </div>
-                            <button class="btn btn-link p-0 text-warning fw-semibold text-decoration-none">
+                            <h5 class="mb-0 fw-bold">Thông tin vận chuyển</h5>
+                            <button @click="router.push('/profile/address')"
+                                class="btn btn-link p-0 text-warning fw-semibold text-decoration-none">
                                 Thay đổi địa chỉ
                             </button>
                         </div>
@@ -17,7 +15,7 @@
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label fw-semibold small">Họ và tên</label>
-                                <input class="form-control co-input" v-model="form.name" placeholder="Họ và tên" />
+                                <input class="form-control co-input" v-model="form.fullname" placeholder="Họ và tên" />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small">Số điện thoại</label>
@@ -43,11 +41,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="checkout-card p-4">
-                        <div class="d-flex align-items-center gap-2 mb-4">
-                            <h5 class="mb-0 fw-bold">Phương thức vận chuyển</h5>
-                        </div>
 
+                    <div class="checkout-card p-4">
+                        <h5 class="mb-0 fw-bold mb-4">Phương thức vận chuyển</h5>
                         <div class="d-flex flex-column gap-3">
                             <label v-for="opt in shippingOptions" :key="opt.value"
                                 class="shipping-option d-flex align-items-center gap-3 p-3 rounded-3"
@@ -66,13 +62,11 @@
                             </label>
                         </div>
                     </div>
-                    <div class="checkout-card p-4">
-                        <div class="d-flex align-items-center gap-2 mb-4">
-                            <h5 class="mb-0 fw-bold">Hình thức thanh toán</h5>
-                        </div>
 
+                    <div class="checkout-card p-4">
+                        <h5 class="mb-0 fw-bold mb-4">Hình thức thanh toán</h5>
                         <div class="row g-3">
-                            <div v-for="method in paymentMethods" :key="method.value" class="col-4">
+                            <div v-for="method in paymentMethods" :key="method.value" class="col-6">
                                 <label
                                     class="payment-option d-flex flex-column align-items-center justify-content-center gap-2 p-3 rounded-3 w-100"
                                     :class="form.payment === method.value ? 'payment-selected' : 'payment-default'">
@@ -86,116 +80,81 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
             <div class="col-12 col-lg-4">
-                <div class="checkout-card p-4 sticky-top" style="top: 80px;">
+                <div class="checkout-card p-4" style="top: 80px;">
+                    <h5 class="mb-4 fw-bold">Tóm tắt đơn hàng <span class="text-muted fw-normal small">({{
+                        cartItems.length }})</span></h5>
 
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="mb-0 fw-bold">Tóm tắt đơn hàng</h5>
-                        <span class="text-muted small">({{ cartItems.length }} sản phẩm)</span>
-                    </div>
-
-                    <div class="d-flex flex-column gap-3 mb-4">
-                        <div v-for="item in cartItems" :key="item.id" class="d-flex align-items-start gap-3">
-                            <div class="position-relative flex-shrink-0">
-                                <img :src="item.imageUrl" :alt="item.title" class="rounded-2 object-fit-cover"
-                                    style="width:64px; height:64px;" />
-                                <span class="position-absolute badge rounded-pill bg-dark border border-white"
-                                    style="top:-8px; right:-8px; font-size:10px;">
+                    <div class="cart-items-preview mb-4">
+                        <div v-for="item in cartItems" :key="item.id" class="d-flex align-items-center gap-3 mb-3">
+                            <div class="position-relative">
+                                <img :src="item.imageUrl" class="rounded-2"
+                                    style="width:50px; height:50px; object-fit: cover;" />
+                                <span
+                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark"
+                                    style="font-size: 10px;">
                                     {{ item.quantity }}
                                 </span>
                             </div>
-                            <div class="flex-grow-1">
-                                <p class="mb-0 fw-bold small" style="color:#1E293B;">{{ item.title }}</p>
-                                <p class="mb-0 text-muted" style="font-size:12px;">{{ item.variant }}</p>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <p class="mb-0 small fw-bold text-truncate">{{ item.title }}</p>
+                                <p class="mb-0 small text-muted">{{ formatPrice(item.price) }}</p>
                             </div>
-                            <span class="fw-bold small">{{ formatPrice(item.price) }}</span>
                         </div>
                     </div>
 
-                    <hr class="text-light opacity-25" />
-                    <div class="d-flex flex-column gap-2 mb-3">
-                        <div class="d-flex justify-content-between">
+                    <hr class="opacity-25" />
+                    <div class="d-flex flex-column gap-2 mb-4">
+                        <div class="d-flex justify-content-between small">
                             <span class="text-secondary">Tạm tính</span>
                             <span>{{ formatPrice(subtotal) }}</span>
                         </div>
-                        <div class="d-flex justify-content-between">
+                        <div class="d-flex justify-content-between small">
                             <span class="text-secondary">Phí vận chuyển</span>
-                            <span class="fw-bold text-warning">+ {{ formatPrice(shippingFee) }}</span>
+                            <span class="text-warning fw-bold">+ {{ formatPrice(shippingFee) }}</span>
                         </div>
-                        <div class="d-flex justify-content-between">
+                        <div class="d-flex justify-content-between small" v-if="discount > 0">
                             <span class="text-secondary">Giảm giá</span>
                             <span class="text-success">- {{ formatPrice(discount) }}</span>
                         </div>
-                    </div>
-
-                    <hr class="text-light opacity-25" />
-                    <div class="d-flex justify-content-between align-items-end mb-4">
-                        <span class="fw-bold fs-6">Tổng thanh toán</span>
-                        <div class="text-end">
-                            <p class="mb-0 fw-bolder text-warning" style="font-size:24px;">{{ formatPrice(total) }}
-                            </p>
-                            <p class="mb-0 text-muted"
-                                style="font-size:10px; letter-spacing:.5px; text-transform:uppercase;">
-                                Đã bao gồm VAT
-                            </p>
+                        <div class="d-flex justify-content-between mt-2 pt-2 border-top">
+                            <span class="fw-bold">Tổng thanh toán</span>
+                            <span class="fw-bold text-warning fs-5">{{ formatPrice(total) }}</span>
                         </div>
                     </div>
+
                     <div class="input-group mb-3">
                         <input class="form-control bg-light border-end-0" v-model="couponCode"
                             placeholder="Mã giảm giá" />
-                        <button class="btn btn-dark fw-bold px-3" @click="applyCoupon">Áp dụng</button>
+                        <button class="btn btn-dark fw-bold" @click="applyCoupon">Áp dụng</button>
                     </div>
+
                     <button class="btn w-100 py-3 fw-bold text-white rounded-3 co-btn-order" @click="placeOrder">
-                        <i class="bi bi-bag-check me-2"></i>
-                        ĐẶT HÀNG NGAY
+                        <i class="bi bi-bag-check me-2"></i> ĐẶT HÀNG NGAY
                     </button>
-
-                    <p class="text-center text-muted mt-3 mb-0" style="font-size:11px;">
-                        Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý với
-                        <a href="#" class="text-muted">Điều khoản dịch vụ</a>
-                        của SaharaBook.
-                    </p>
-
                 </div>
             </div>
-
         </div>
     </div>
-    <Transition name="toast">
-        <div v-if="showToast" class="toast-success">
-            <div class="toast-icon">
-                <i class="bi bi-check-circle-fill"></i>
-            </div>
-            <div class="toast-content">
-                <p class="toast-title">Đặt hàng thành công!</p>
-                <p class="toast-sub">Đơn hàng của bạn đang được xử lý.</p>
-            </div>
-            <button class="toast-close" @click="showToast = false">
-                <i class="bi bi-x"></i>
-            </button>
-        </div>
-    </Transition>
 </template>
-
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from "vue-toastification"
 
 const router = useRouter()
-
+const toast = useToast()
 
 const cartItems = ref([])
 const couponCode = ref('')
 const discount = ref(0)
-const showToast = ref(false)
 
 const form = ref({
-    name: '',
+    fullname: '',
     phone: '',
     email: '',
     address: '',
@@ -204,8 +163,8 @@ const form = ref({
 })
 
 const shippingOptions = [
-    { value: 'ghn', name: 'Giao hàng nhanh', price: 30000, eta: 'Dự kiến nhận hàng: 2-3 ngày' },
-    { value: 'express', name: 'Hỏa tốc', price: 55000, eta: 'Dự kiến nhận hàng: Trong ngày' },
+    { value: 'ghn', name: 'Giao hàng nhanh', price: 30000, eta: 'Dự kiến: 2-3 ngày' },
+    { value: 'express', name: 'Hỏa tốc', price: 55000, eta: 'Dự kiến: Trong ngày' },
 ]
 
 const paymentMethods = [
@@ -214,81 +173,88 @@ const paymentMethods = [
 ]
 
 onMounted(() => {
-
     const savedCart = localStorage.getItem('cart')
     if (savedCart) {
         cartItems.value = JSON.parse(savedCart)
     }
 
     if (cartItems.value.length === 0) {
-        alert('Giỏ hàng của bạn đang trống!')
-        router.push('/cart')
+        toast.info("Giỏ hàng của bạn đang trống.");
+        router.push('/product')
         return
     }
 
     const savedUser = localStorage.getItem('user-info')
     if (savedUser) {
         const user = JSON.parse(savedUser)
-        form.value.name = user.name || ''
+        form.value.fullname = user.fullname || ''
         form.value.phone = user.phone || ''
         form.value.email = user.email || ''
         form.value.address = user.address || ''
     }
 })
 
-const subtotal = computed(() =>
-    cartItems.value.reduce((s, i) => s + i.price * i.quantity, 0)
-)
-
-const shippingFee = computed(() =>
-    shippingOptions.find(o => o.value === form.value.shipping)?.price || 0
-)
-
+const subtotal = computed(() => cartItems.value.reduce((s, i) => s + i.price * i.quantity, 0))
+const shippingFee = computed(() => shippingOptions.find(o => o.value === form.value.shipping)?.price || 0)
 const total = computed(() => subtotal.value + shippingFee.value - discount.value)
 
 const applyCoupon = () => {
-    if (couponCode.value === 'SAHARA10') {
+    if (couponCode.value.toUpperCase() === 'SAHARA10') {
         discount.value = Math.round(subtotal.value * 0.1)
-        alert('Áp dụng mã giảm giá 10% thành công!')
+        toast.success("Áp dụng mã giảm giá 10% thành công!");
+    } else if (!couponCode.value) {
+        toast.warning("Vui lòng nhập mã giảm giá");
     } else {
-        alert('Mã giảm giá không hợp lệ')
+        toast.error("Mã không hợp lệ");
         discount.value = 0
     }
 }
 
 const placeOrder = () => {
-
     const token = localStorage.getItem('user-token')
+
     if (!token) {
-        alert('Bạn cần đăng nhập để thực hiện đặt hàng!')
+        toast.warning("Vui lòng đăng nhập để đặt hàng");
         router.push({ path: '/login', query: { redirect: router.currentRoute.value.fullPath } })
         return
     }
 
-    if (!form.value.name || !form.value.phone || !form.value.address) {
-        alert('Vui lòng nhập đầy đủ thông tin giao hàng!')
+    if (!form.value.fullname || !form.value.phone || !form.value.address) {
+        toast.error("Vui lòng nhập đầy đủ thông tin giao hàng!");
         return
     }
 
-    showToast.value = true
+    const newOrder = {
+        id: 'SAHARA-' + Date.now(),
+        date: new Date().toLocaleDateString('vi-VN'),
+        status: 'pending',
+        customerName: form.value.fullname,
+        address: form.value.address,
+        paymentMethod: form.value.payment === 'cod' ? 'COD' : 'Chuyển khoản',
+        total: total.value,
+        books: cartItems.value
+    }
 
+    const existingOrders = JSON.parse(localStorage.getItem('user_orders')) || []
+
+    existingOrders.unshift(newOrder
+
+    )
+    localStorage.setItem('user_orders', JSON.stringify(existingOrders))
+
+    toast.success("Đặt hàng thành công! Đang chuyển hướng...", {
+        timeout: 2000
+    });
 
     localStorage.removeItem('cart')
-
     window.dispatchEvent(new Event('storage'))
 
-
     setTimeout(() => {
-        showToast.value = false
-        setTimeout(() => {
-            router.push('/')
-        }, 400)
-    }, 2500)
+        router.push('/profile/orders')
+    }, 2000)
 }
-const formatPrice = (p) => {
-    const value = Number(p) || 0
-    return value.toLocaleString('vi-VN') + 'đ'
-}
+
+const formatPrice = (p) => (Number(p) || 0).toLocaleString('vi-VN') + 'đ'
 </script>
 
 <style scoped>
@@ -299,28 +265,10 @@ const formatPrice = (p) => {
     box-shadow: 0 4px 12px rgba(226, 232, 240, 0.4);
 }
 
-.step-badge {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: rgba(245, 158, 11, 0.1);
-    color: #F59E0B;
-    font-family: 'Manrope', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-/* Input */
 .co-input {
     height: 50px;
     border: 1px solid #E2E8F0;
     border-radius: 8px;
-    font-family: 'Manrope', sans-serif;
-    font-size: 15px;
 }
 
 .co-input:focus {
@@ -330,46 +278,19 @@ const formatPrice = (p) => {
 
 .co-input--address {
     background: rgba(245, 158, 11, 0.05);
-    border-color: rgba(245, 158, 11, 0.5);
 }
 
-/* Radio */
-.co-radio {
-    accent-color: #F59E0B;
-    width: 18px;
-    height: 18px;
-}
-
-.shipping-option {
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all .2s;
-}
-
-.shipping-default {
-    border-color: #E2E8F0;
-}
-
-.shipping-selected {
-    border-color: #F59E0B;
-    background: rgba(245, 158, 11, 0.05);
-    border-radius: 16px !important;
-}
-
+.shipping-option,
 .payment-option {
     cursor: pointer;
-    border: 2px solid transparent;
+    border: 2px solid #E2E8F0;
     transition: all .2s;
 }
 
-.payment-default {
-    border-color: #E2E8F0;
-}
-
+.shipping-selected,
 .payment-selected {
     border-color: #F59E0B;
     background: rgba(245, 158, 11, 0.05);
-    border-radius: 16px !important;
 }
 
 .payment-icon {
@@ -389,8 +310,6 @@ const formatPrice = (p) => {
 
 .co-btn-order {
     background: #F59E0B;
-    font-size: 17px;
-    letter-spacing: .3px;
     box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.25);
 }
 
@@ -398,67 +317,8 @@ const formatPrice = (p) => {
     background: #d97706;
 }
 
-.toast-success {
-    position: fixed;
-    top: 32px;
-    right: 32px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: #fff;
-    border: 1px solid #E2E8F0;
-    border-left: 4px solid #10B981;
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-    z-index: 9999;
-    min-width: 300px;
-}
-
-.toast-icon {
-    font-size: 28px;
-    color: #10B981;
-    flex-shrink: 0;
-    line-height: 1;
-}
-
-.toast-content {
-    flex: 1;
-}
-
-.toast-title {
-    font-family: 'Manrope', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: #0F172A;
-    margin: 0 0 2px;
-}
-
-.toast-sub {
-    font-family: 'Manrope', sans-serif;
-    font-size: 13px;
-    color: #64748B;
-    margin: 0;
-}
-
-.toast-close {
-    background: none;
-    border: none;
-    color: #94A3B8;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 0;
-    flex-shrink: 0;
-}
-
-.toast-enter-active,
-.toast-leave-active {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.toast-enter-from,
-.toast-leave-to {
-    opacity: 0;
-    transform: translateX(60px);
+.cart-items-preview {
+    max-height: 200px;
+    overflow-y: auto;
 }
 </style>

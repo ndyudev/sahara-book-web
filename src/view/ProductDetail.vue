@@ -56,15 +56,17 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import books from '../data/products.json'
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 
 const book = books.find(b => b.id === Number(route.params.id))
 if (!book) router.push('/')
 
-const addToCart = (showAlert = true) => {
+const addToCart = () => {
   const cartData = localStorage.getItem('cart')
   let cart = cartData ? JSON.parse(cartData) : []
 
@@ -90,16 +92,38 @@ const addToCart = (showAlert = true) => {
 
   window.dispatchEvent(new Event('storage'))
 
-  if (showAlert) {
-    alert(`Đã thêm "${book.title}" vào giỏ hàng!`)
-  }
+
+  toast.success(`Đã thêm "${book.title}" vào giỏ hàng!`)
+
 }
 
 const buyNow = () => {
-  addToCart(false) /
-    router.push('/checkout')
-}
+  const cartData = localStorage.getItem('cart')
+  let cart = cartData ? JSON.parse(cartData) : []
 
+  const index = cart.findIndex(item => item.id === book.id)
+
+  if (index !== -1) {
+    cart[index].quantity += 1
+  } else {
+
+    const newProduct = {
+      id: book.id,
+      title: book.title,
+      price: book.salePrice,
+      image: book.imageUrl,
+      quantity: 1,
+      author: book.author,
+      category: book.category
+    }
+    cart.push(newProduct)
+  }
+
+  localStorage.setItem('cart', JSON.stringify(cart))
+
+  window.dispatchEvent(new Event('storage'))
+  router.push('/checkout')
+}
 const bookMeta = computed(() => [
   { label: 'ISBN-13', value: book?.isbn },
   { label: 'NXB', value: book?.publisher },

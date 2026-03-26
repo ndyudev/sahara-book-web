@@ -53,8 +53,6 @@ defineEmits(['apply'])
     display: flex;
     flex-direction: column;
     gap: 24px;
-    position: sticky;
-    top: 80px;
 }
 
 .filter-header {

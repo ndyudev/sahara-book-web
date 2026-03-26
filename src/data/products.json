@@ -12,13 +12,14 @@
         "discountPercent": 26,
         "rating": 4.8,
         "reviewCount": 1240,
+        "ranking": 2,
+        "flashSale": {
+            "isFlashSale": false,
+            "saleEndTime": null,
+            "soldQuantity": 0,
+            "totalStock": 0
+        },
         "description": "Một kiệt tác văn học Mỹ về sự hào nhoáng và bi kịch của giấc mơ Mỹ trong thập niên 1920.",
-        "isbn": "978-0-7432-7356-5",
-        "publisher": "Scribner",
-        "pages": 180,
-        "format": "Bìa mềm",
-        "status": "Sẵn có",
-        "inStock": true,
         "isFeatured": true
     },
     {
@@ -34,13 +35,14 @@
         "discountPercent": 22,
         "rating": 4.7,
         "reviewCount": 980,
+        "ranking": 5,
+        "flashSale": {
+            "isFlashSale": true,
+            "saleEndTime": "2026-03-26T00:00:00Z",
+            "soldQuantity": 45,
+            "totalStock": 50
+        },
         "description": "Những bài học về startup và sáng tạo từ nhà đồng sáng lập PayPal Peter Thiel.",
-        "isbn": "978-0-8041-3929-8",
-        "publisher": "Crown Business",
-        "pages": 224,
-        "format": "Bìa cứng",
-        "status": "Giao trong 2 giờ",
-        "inStock": true,
         "isFeatured": true
     },
     {
@@ -56,13 +58,14 @@
         "discountPercent": 50,
         "rating": 4.9,
         "reviewCount": 3200,
-        "description": "Hướng dẫn thực tế để xây dựng thói quen tốt và từ bỏ thói quen xấu thông qua những thay đổi nhỏ mỗi ngày.",
-        "isbn": "978-0-7352-1129-2",
-        "publisher": "Avery",
-        "pages": 320,
-        "format": "Bìa mềm",
-        "status": "Sẵn có",
-        "inStock": true,
+        "ranking": 1,
+        "flashSale": {
+            "isFlashSale": true,
+            "saleEndTime": "2026-03-25T23:59:59Z",
+            "soldQuantity": 88,
+            "totalStock": 100
+        },
+        "description": "Hướng dẫn thực tế để xây dựng thói quen tốt và từ bỏ thói quen xấu.",
         "isFeatured": true
     },
     {
@@ -78,13 +81,14 @@
         "discountPercent": 24,
         "rating": 4.8,
         "reviewCount": 2800,
-        "description": "Lịch sử tóm lược về loài người từ thời tiền sử đến hiện đại, khám phá cách Homo Sapiens thống trị thế giới.",
-        "isbn": "978-0-0624-4543-7",
-        "publisher": "Harper",
-        "pages": 443,
-        "format": "Bìa mềm",
-        "status": "Sẵn có",
-        "inStock": true,
+        "ranking": 3,
+        "flashSale": {
+            "isFlashSale": false,
+            "saleEndTime": null,
+            "soldQuantity": 0,
+            "totalStock": 0
+        },
+        "description": "Lịch sử tóm lược về loài người.",
         "isFeatured": false
     },
     {
@@ -182,19 +186,20 @@
         "badge": "BESTSELLER",
         "category": "Kinh tế",
         "categorySlug": "kinh-te",
-        "imageUrl": "",
+        "imageUrl": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000&auto=format&fit=crop",
         "originalPrice": 200000,
         "salePrice": 160000,
         "discountPercent": 20,
         "rating": 4.6,
         "reviewCount": 4100,
-        "description": "Cuốn sách tài chính cá nhân bán chạy nhất mọi thời đại về sự khác biệt trong tư duy của người giàu và người nghèo.",
-        "isbn": "978-1-6125-4002-2",
-        "publisher": "Plata Publishing",
-        "pages": 336,
-        "format": "Bìa mềm",
-        "status": "Sẵn có",
-        "inStock": true,
+        "ranking": 4,
+        "flashSale": {
+            "isFlashSale": true,
+            "saleEndTime": "2026-03-26T12:00:00Z",
+            "soldQuantity": 15,
+            "totalStock": 60
+        },
+        "description": "Sự khác biệt trong tư duy của người giàu và người nghèo.",
         "isFeatured": true
     },
     {

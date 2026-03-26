@@ -4,47 +4,96 @@
             <div class="d-flex align-items-center gap-3">
                 <h2 class="section-title mb-0">Flash Sale</h2>
                 <div class="countdown">
-                    <div class="time-block"><span>02</span></div>
+                    <div class="time-block"><span>{{ timeLeft.hours }}</span></div>
                     <span class="colon">:</span>
-                    <div class="time-block"><span>45</span></div>
+                    <div class="time-block"><span>{{ timeLeft.minutes }}</span></div>
                     <span class="colon">:</span>
-                    <div class="time-block"><span>12</span></div>
+                    <div class="time-block"><span>{{ timeLeft.seconds }}</span></div>
                 </div>
             </div>
-            <a href="#" class="see-all-link d-flex align-items-center gap-1 text-decoration-none">
+            <RouterLink to="/product" class="see-all-link d-flex align-items-center gap-1 text-decoration-none">
                 Xem tất cả
                 <i class="bi bi-arrow-right see-all-icon"></i>
-            </a>
+            </RouterLink>
         </div>
 
         <div class="row g-3">
-            <div class="col-6 col-md-3 col-lg-2-4">
-                <div class="book-card">
-
+            <div v-for="book in flashSaleBooks" :key="book.id" class="col-6 col-md-3 col-lg-2-4">
+                <div class="book-card" @click="goToDetail(book.id)">
                     <div class="book-img-wrap">
-                        <img  class="book-img" referrerpolicy="no-referrer" />
+                        <img :src="book.imageUrl || 'https://via.placeholder.com/150'" :alt="book.title"
+                            class="book-img" referrerpolicy="no-referrer" />
                         <div class="book-overlay"></div>
-                        <div class="discount-badge"></div>
+                        <div class="discount-badge">-{{ book.discountPercent }}%</div>
                     </div>
 
                     <div class="book-info">
-                        <p class="book-title"></p>
-                        <p class="book-author"></p>
+                        <p class="book-title" :title="book.title">{{ book.title }}</p>
+                        <p class="book-author">{{ book.author }}</p>
                         <div class="book-prices">
-                            <span class="price-sale"></span>
-                            <span class="price-original"></span>
+                            <span class="price-sale">{{ formatPrice(book.salePrice) }}</span>
+                            <span class="price-original">{{ formatPrice(book.originalPrice) }}</span>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
-
     </section>
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import books from '../../data/products.json'
+const router = useRouter();
 
+const flashSaleBooks = computed(() => {
+    return books.filter(b => b.flashSale && b.flashSale.isFlashSale);
+});
+
+
+const timeLeft = ref({ hours: '00', minutes: '00', seconds: '00' });
+let timerInterval = null;
+
+const updateCountdown = () => {
+    
+    const endTime = new Date(flashSaleBooks.value[0]?.flashSale.saleEndTime || new Date()).getTime();
+    const now = new Date().getTime();
+    const distance = endTime - now;
+
+    if (distance < 0) {
+        timeLeft.value = { hours: '00', minutes: '00', seconds: '00' };
+        clearInterval(timerInterval);
+        return;
+    }
+
+    const h = Math.floor((distance / (1000 * 60 * 60)));
+    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+    timeLeft.value = {
+        hours: h < 10 ? '0' + h : h.toString(),
+        minutes: m < 10 ? '0' + m : m.toString(),
+        seconds: s < 10 ? '0' + s : s.toString()
+    };
+};
+
+const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+};
+
+const goToDetail = (id) => {
+    router.push(`/product/${id}`);
+};
+
+onMounted(() => {
+    updateCountdown();
+    timerInterval = setInterval(updateCountdown, 1000);
+});
+
+onUnmounted(() => {
+    clearInterval(timerInterval);
+});
 </script>
 
 <style scoped>
