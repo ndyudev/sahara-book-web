@@ -61,7 +61,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useToast } from "vue-toastification"
 
+const toast = useToast()
 const isSaving = ref(false)
 const user = ref({
     fullname: '',
@@ -69,7 +71,6 @@ const user = ref({
     phone: '',
     dob: '',
     address: '',
-    avatar: ''
 })
 
 onMounted(() => {
@@ -87,26 +88,46 @@ onMounted(() => {
 const handleAvatarChange = (event) => {
     const file = event.target.files[0]
     if (file) {
+
         if (file.size > 2 * 1024 * 1024) {
-            alert("Ảnh quá lớn! Vui lòng chọn ảnh dưới 2MB.")
+            toast.error("Ảnh quá lớn! Vui lòng chọn ảnh dưới 2MB.")
             return
         }
+
         const reader = new FileReader()
         reader.onload = (e) => {
             user.value.avatar = e.target.result
+            toast.info("Đã tải ảnh lên thành công!")
         }
         reader.readAsDataURL(file)
     }
 }
 
 const save = () => {
+
+    if (!user.value.fullname || !user.value.phone) {
+        toast.warning("Vui lòng nhập đầy đủ Họ tên và Số điện thoại")
+        return
+    }
+
     isSaving.value = true
+
     setTimeout(() => {
-        localStorage.setItem('user-info', JSON.stringify(user.value))
-        isSaving.value = false
-        alert('Cập nhật thông tin thành công!')
-        window.dispatchEvent(new Event('storage'))
-    }, 600)
+        try {
+            localStorage.setItem('user-info', JSON.stringify(user.value))
+            isSaving.value = false
+
+            toast.success('Cập nhật thông tin thành công!', {
+                timeout: 2000,
+                icon: "bi bi-check-circle-fill"
+            })
+
+            window.dispatchEvent(new Event('storage'))
+        } catch (error) {
+            isSaving.value = false
+            toast.error("Có lỗi xảy ra khi lưu dữ liệu")
+        }
+    }, 800)
 }
 </script>
 

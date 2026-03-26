@@ -125,9 +125,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, h } from 'vue'
+import { useToast } from "vue-toastification"
 
-
+const toast = useToast()
 const activeTab = ref('all')
 const orders = ref([])
 
@@ -143,12 +144,10 @@ const statusLabel = {
     canceled: 'Đã hủy',
 }
 
-
 onMounted(() => {
     const savedOrders = JSON.parse(localStorage.getItem('user_orders')) || []
     orders.value = savedOrders.filter(o => o && o.id && o.status)
 })
-
 
 const filteredOrders = computed(() =>
     activeTab.value === 'all'
@@ -161,14 +160,47 @@ const formatPrice = (p) => {
     return p.toLocaleString('vi-VN') + 'đ';
 }
 
+// HÀM HỦY ĐƠN HÀNG VỚI TOAST XÁC NHẬN
 const cancelOrder = (id) => {
-    if (confirm(`Bạn chắc chắn muốn hủy đơn hàng #${id}?`)) {
-        const index = orders.value.findIndex(o => o.id === id)
-        if (index !== -1) {
-            orders.value[index].status = 'canceled'
-            localStorage.setItem('user_orders', JSON.stringify(orders.value))
-            alert('Đã hủy đơn hàng thành công.')
+    toast.warning({
+        component: {
+            render() {
+                return h('div', { class: 'p-1' }, [
+                    h('p', { class: 'mb-2 small text-dark' }, [
+                        'Bạn chắc chắn muốn hủy đơn hàng ',
+                        h('strong', `#${id}`),
+                        '?'
+                    ]),
+                    h('div', { class: 'd-flex gap-2' }, [
+                        h('button', {
+                            class: 'btn btn-danger btn-sm px-3 fw-bold border-0',
+                            onClick: () => {
+                                this.$emit("close-toast");
+                                executeCancel(id);
+                            }
+                        }, 'Xác nhận hủy'),
+                        h('button', {
+                            class: 'btn btn-light btn-sm px-3 border',
+                            onClick: () => this.$emit("close-toast")
+                        }, 'Quay lại')
+                    ])
+                ])
+            }
         }
+    }, {
+        timeout: 5000,
+        closeOnClick: false,
+        icon: "bi bi-exclamation-circle-fill"
+    });
+}
+
+const executeCancel = (id) => {
+    const index = orders.value.findIndex(o => o.id === id)
+    if (index !== -1) {
+        orders.value[index].status = 'canceled'
+        localStorage.setItem('user_orders', JSON.stringify(orders.value))
+        window.dispatchEvent(new Event('storage'))
+        toast.error(`Đã hủy đơn hàng #${id}`, { timeout: 2000 });
     }
 }
 
@@ -185,7 +217,12 @@ const reOrder = (order) => {
     })
 
     localStorage.setItem('cartItems', JSON.stringify(cart))
-    alert(`Đã thêm ${order.books.length} sản phẩm vào giỏ hàng!`)
+    window.dispatchEvent(new Event('storage'))
+
+    toast.success(`Đã thêm ${order.books.length} sản phẩm vào giỏ hàng!`, {
+        icon: "bi bi-cart-check-fill",
+        timeout: 3000
+    });
 }
 </script>
 

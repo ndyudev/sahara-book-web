@@ -1,32 +1,53 @@
 <template>
     <section class="recommendations">
-
         <h2 class="rec-title">Dành cho bạn</h2>
 
         <div class="rec-grid">
-            <div class="rec-card">
-
+            <div v-for="book in recommendedBooks" :key="book.id" class="rec-card" @click="viewDetail(book.id)">
                 <div class="rec-img-wrap">
-                    <img class="rec-img" referrerpolicy="no-referrer" />
+                    <img :src="book.imageUrl || 'https://images.unsplash.com/photo-1543004218-ee14110497f8?q=80&w=1000&auto=format&fit=crop'"
+                        :alt="book.title" class="rec-img" referrerpolicy="no-referrer" />
                 </div>
 
                 <div class="rec-info">
-                    <p class="rec-book-title"></p>
-                    <p class="rec-author"></p>
-                    <p class="rec-price"></p>
+                    <p class="rec-book-title">{{ book.title }}</p>
+                    <p class="rec-author">{{ book.author }}</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <p class="rec-price mb-0">{{ formatPrice(book.salePrice) }}</p>
+                        <span v-if="book.discountPercent > 0" class="badge bg-danger-subtle text-danger small">
+                            -{{ book.discountPercent }}%
+                        </span>
+                    </div>
                 </div>
-
             </div>
         </div>
+
         <div class="rec-footer">
             <router-link to="/product" class="rec-cta-btn">Xem thêm</router-link>
         </div>
-
     </section>
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import books from '../../data/products.json'
 
+const router = useRouter();
+
+
+
+const recommendedBooks = computed(() => {
+    return books.filter(b => b.isFeatured).slice(0, 5);
+});
+
+const formatPrice = (b) => {
+    return (b || 0).toLocaleString('vi-VN') + 'đ';
+};
+
+const viewDetail = (id) => {
+    router.push(`/product/${id}`);
+};
 </script>
 
 <style scoped>
@@ -37,112 +58,96 @@
     width: 100%;
     max-width: 1280px;
     margin: 0 auto;
-    padding: 20px 24px;
+    padding: 60px 24px;
 }
 
 .rec-title {
-    font-family: var(--font-headline);
     font-weight: 800;
     font-size: 32px;
-    color: var(--on-surface);
-    position: relative;
+    color: #1e293b;
+    margin-bottom: 0;
 }
 
 .rec-grid {
     display: grid;
-
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 30px;
 }
 
 .rec-card {
+    cursor: pointer;
     display: flex;
     flex-direction: column;
-    background: transparent;
-    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-}
-
-.rec-card:hover {
-    transform: translateY(-5px);
+    transition: all 0.3s ease;
 }
 
 .rec-img-wrap {
-    background: var(--surface-container-low);
-    border-radius: 24px;
+    background: #f8fafc;
+    border-radius: 20px;
     overflow: hidden;
     aspect-ratio: 3/4;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--surface-container-high);
+    border: 1px solid #e2e8f0;
 }
 
 .rec-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.6s ease;
+    transition: transform 0.5s ease;
 }
 
 .rec-card:hover .rec-img {
-    transform: scale(1.1);
+    transform: scale(1.08);
 }
 
-
 .rec-info {
-    padding: 16px 8px;
-    text-align: left;
+    padding: 16px 4px;
 }
 
 .rec-book-title {
-    font-family: var(--font-headline);
     font-weight: 700;
     font-size: 16px;
-    color: var(--on-surface);
+    color: #1e293b;
     margin: 0 0 4px;
-
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    white-space: normal;
     overflow: hidden;
-    min-height: 44px;
+    height: 44px;
 }
 
 .rec-author {
-    font-family: var(--font-body);
-    font-weight: 500;
     font-size: 13px;
-    color: var(--on-surface-variant);
-    margin: 0 0 10px;
+    color: #64748b;
+    margin-bottom: 8px;
 }
 
 .rec-price {
-    font-family: var(--font-headline);
     font-weight: 800;
     font-size: 18px;
-    color: var(--primary-container);
+    color: #f59e0b;
 }
-
 
 .rec-footer {
     display: flex;
     justify-content: center;
-    padding-top: 20px;
+    align-items: center;
+    width: 100%;
+    padding-top: 32px;
 }
 
 .rec-cta-btn {
     text-decoration: none;
     font-weight: 700;
-    font-size: 16px;
-    line-height: 24px;
-    color: #0b0b0b;
-    background: #F3F4F5;
-    border: none;
+    color: #1e293b;
+    background: #f1f5f9;
+    padding: 12px 48px;
     border-radius: 12px;
-    padding: 12px 40px;
-    cursor: pointer;
+    transition: all 0.2s;
 }
 
 .rec-cta-btn:hover {
-    background: #EDEEEF;
+    background: #e2e8f0;
+    transform: scale(1.05);
 }
 </style>

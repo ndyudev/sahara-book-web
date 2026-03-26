@@ -845,7 +845,7 @@ h6 {
     background: rgba(255, 140, 0, 0.05);
 }
 
-/* ── Chân trang (Footer bên trong Card) ── */
+
 .auth-footer {
     padding: 24px;
     background: rgba(255, 140, 0, 0.05);
@@ -863,4 +863,149 @@ h6 {
     font-weight: 700;
     color: #FF8C00;
     text-decoration: none;
+}
+
+.sb-toast {
+    position: fixed;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11000;
+    background: #191c1d;
+    color: white;
+    padding: 12px 28px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    min-width: fit-content;
+}
+
+.sb-toast i {
+    color: #FF8C00;
+    font-size: 1.3rem;
+    filter: drop-shadow(0 0 5px rgba(255, 140, 0, 0.5));
+}
+
+.sb-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10500;
+}
+
+.sb-confirm-card {
+    background: white;
+    padding: 40px;
+    border-radius: 32px;
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.toast-enter-active,
+.toast-leave-active {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast-enter-from {
+    opacity: 0;
+    transform: translate(-50%, -40px);
+
+}
+
+.toast-leave-to {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+}
+
+
+.profile-nav-item.active {
+    background: #fff7ed;
+    color: #FF8C00;
+    font-weight: 700;
+}
+
+.btn-confirm:hover {
+    background: #e67e00;
+    transform: translateY(-2px);
+}
+
+.sb-confirm-btns {
+    display: flex;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.sb-confirm-btns button {
+    flex: 1;
+    padding: 14px;
+    border-radius: 16px;
+    border: none;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.btn-cancel {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.btn-confirm {
+    background: #FF8C00;
+    color: white;
+}
+
+.btn-confirm:hover {
+    background: #e67e00;
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+    transition: all 0.3s ease;
+}
+
+.fade-slide-enter-from {
+    opacity: 0;
+    transform: translateY(15px);
+}
+
+.fade-slide-leave-to {
+    opacity: 0;
+    transform: translateY(15px);
+}
+
+.toast-enter-active,
+.toast-leave-active {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast-enter-from,
+.toast-leave-to {
+    opacity: 0;
+    transform: translate(-50%, 30px);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.sb-confirm-icon {
+    font-size: 3.5rem;
+    color: #FF8C00;
+    margin-bottom: 20px;
 }

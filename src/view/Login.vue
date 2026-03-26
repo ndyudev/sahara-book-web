@@ -96,10 +96,13 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import users from '../data/user.json'
+import { useToast } from "vue-toastification"
 
+const toast = useToast()
 const router = useRouter()
+const route = useRoute()
 
 const showPassword = ref(false)
 const form = reactive({
@@ -110,20 +113,28 @@ const form = reactive({
 
 const handleLogin = () => {
 
-    const user = users.find(u => u.email === form.email && u.password === form.password);
+    const jsonUsers = users;
+
+    const localUsers = JSON.parse(localStorage.getItem('sahara-users') || '[]')
+
+    const allUsers = [...jsonUsers, ...localUsers]
+
+    const user = allUsers.find(u => u.email === form.email && u.password === form.password);
 
     if (user) {
         localStorage.setItem('user-token', 'mock-jwt-token-12345');
 
         localStorage.setItem('user-info', JSON.stringify(user));
 
-        const redirectPath = router.query.redirect || '/';
+        window.dispatchEvent(new Event('strorage'));
+        window.dispatchEvent(new Event('user-info-changed'));
 
-        alert(`Chào mừng ${user.name} quay trở lại!`);
+        const redirectPath = route.query.redirect || '/';
+        toast.success(`Chào mừng ${user.fullname || 'bạn'} quay trở lại!`);
+
         router.push(redirectPath);
     } else {
-        alert('Email hoặc mật khẩu không chính xác. Vui lòng thử lại!');
+        toast.error('Email hoặc mật khẩu không chính xác. Vui lòng thử lại!');
     }
 };
-
 </script>

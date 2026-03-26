@@ -57,8 +57,10 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useToast } from "vue-toastification" 
 
 const wishlistItems = ref([])
+const toast = useToast() 
 
 const loadWishlist = () => {
     try {
@@ -83,10 +85,16 @@ onUnmounted(() => {
     window.removeEventListener('storage', handleStorageChange)
 })
 
-const removeFromWishlist = (id) => {
+
+const removeFromWishlist = (id, showToast = true) => {
+    const item = wishlistItems.value.find(i => i.id === id)
     wishlistItems.value = wishlistItems.value.filter(item => item.id !== id)
     localStorage.setItem('wishlist', JSON.stringify(wishlistItems.value))
     window.dispatchEvent(new Event('storage'))
+    
+    if (showToast && item) {
+        toast.info(`Đã xóa ${item.name} khỏi danh sách`)
+    }
 }
 
 const moveToCart = (item) => {
@@ -109,9 +117,9 @@ const moveToCart = (item) => {
     localStorage.setItem('cart', JSON.stringify(cart))
     window.dispatchEvent(new Event('storage'))
 
-    removeFromWishlist(item.id)
+    removeFromWishlist(item.id, false)
 
-    console.log(`Đã thêm ${item.name} vào giỏ hàng thành công!`)
+    toast.success(`Đã thêm ${item.name} vào giỏ hàng!`)
 }
 
 const formatPrice = (p) => {

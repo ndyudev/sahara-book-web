@@ -2,8 +2,8 @@
     {
         "id": "user1",
         "username": "abc",
-        "password": "123",
-        "fullname": "Thúy Ngân",
+        "password": "123456",
+        "fullname": "Nguyễn Văn A",
         "email": "abc@gmail.com",
         "phone": "0901234567",
         "dob": "23/05/2006",
@@ -14,7 +14,7 @@
     {
         "id": "user2",
         "username": "admin_sahara",
-        "password": "123",
+        "password": "123456",
         "fullname": "Trần Thị Ngọc",
         "email": "admin@saharabook.com",
         "phone": "02433334444",

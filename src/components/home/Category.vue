@@ -1,6 +1,5 @@
 <template>
   <section class="categories-section">
-
     <div class="categories-header">
       <h2 class="section-title">Danh mục</h2>
       <RouterLink to="/product" class="see-all-link text-decoration-none">
@@ -8,150 +7,135 @@
         <i class="bi bi-arrow-right see-all-icon"></i>
       </RouterLink>
     </div>
+
     <div class="cat-grid">
-      <div v-for="cat in categories" :key="cat.id" class="cat-card">
-        <img :src="cat.image" :alt="cat.name" class="cat-img" referrerpolicy="no-referrer" />
+      <div v-for="cat in uniqueCategories" :key="cat.slug" class="cat-card" @click="filterByCategory(cat.slug)">
+        <img
+          :src="cat.image || 'https://images.unsplash.com/photo-1543004218-ee14110497f8?q=80&w=1000&auto=format&fit=crop'"
+          :alt="cat.name" class="cat-img" referrerpolicy="no-referrer" />
         <div class="cat-overlay"></div>
-        <div class="cat-label">{{ cat.name }}</div>
+        <div class="cat-label">
+          {{ cat.name }}
+          <span class="cat-count">{{ cat.count }} sản phẩm</span>
+        </div>
       </div>
     </div>
-
   </section>
 </template>
 
 <script setup>
-const categories = [
-  {
-    id: 1,
-    name: 'Văn học',
-  },
-  {
-    id: 2,
-    name: 'Kinh tế',
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import books from '../../data/products.json'
+const router = useRouter()
 
-  },
-  {
-    id: 3,
-    name: 'Tâm lý',
+const uniqueCategories = computed(() => {
+  const map = {}
 
-  },
-  {
-    id: 4,
-    name: 'Ngoại ngũ',
+  books.forEach(b => {
+    if (!map[b.category]) {
+      map[b.category] = {
+        name: b.category,
+        slug: b.categorySlug,
+        image: b.imageUrl,
+        count: 0
+      }
+    }
+    map[b.category].count++
 
-  },
-]
+    if (!map[b.category].image && b.imageUrl) {
+      map[b.category].image = b.imageUrl
+    }
+  })
+
+  return Object.values(map)
+})
+
+const filterByCategory = (slug) => {
+  router.push({ path: '/product', query: { category: slug } })
+}
 </script>
 
 <style scoped>
-/* ── Section ── */
 .categories-section {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
   width: 100%;
   max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 20px;
 }
 
-/* ── Header ── */
 .categories-header {
   display: flex;
-  flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 32px;
 }
 
-/* ── Title ── */
 .section-title {
   font-family: 'Manrope', sans-serif;
-  font-weight: 700;
-  font-size: 30px;
-  line-height: 36px;
-  color: #191C1D;
-  margin: 0;
+  font-weight: 800;
+  font-size: 32px;
+  color: #1e293b;
 }
 
-/* ── See All ── */
 .see-all-link {
+  color: #f59e0b;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 16px;
-  line-height: 24px;
-  color: #FF8C00;
-  transition: gap .2s;
-}
-
-.see-all-link:hover {
   gap: 8px;
 }
 
-.see-all-icon {
-  font-size: 10px;
-  transition: transform .2s;
-}
-
-.see-all-link:hover .see-all-icon {
-  transform: translateX(3px);
-}
-
-/* ── Grid ── */
 .cat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
 }
 
-/* ── Card ── */
 .cat-card {
   position: relative;
-  height: 201px;
-  border-radius: 16px;
+  height: 220px;
+  border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.cat-card:hover .cat-img {
-  transform: scale(1.07);
-}
-
-.cat-card:hover .cat-overlay {
-  opacity: 1;
-}
-
-/* ── Image ── */
 .cat-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-  transition: transform .5s ease;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ── Overlay ── */
+.cat-card:hover .cat-img {
+  transform: scale(1.1);
+}
+
 .cat-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(0deg,
-      rgba(0, 0, 0, 0.8) 0%,
-      rgba(0, 0, 0, 0) 100%);
-  opacity: 0.85;
-  transition: opacity .3s;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0) 100%);
 }
 
-/* ── Label ── */
 .cat-label {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   padding: 24px;
-  font-family: 'Inter', sans-serif;
+  color: white;
+  font-family: 'Manrope', sans-serif;
   font-weight: 700;
-  font-size: 20px;
-  line-height: 28px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cat-count {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 4px;
 }
 </style>

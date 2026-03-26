@@ -43,12 +43,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useToast } from 'vue-toastification'
+
+const toat = useToast();
+
 const props = defineProps({
     book: { type: Object, required: true }
 })
 const isWishlisted = ref(false)
 
-// Kiểm tra xem sản phẩm đã có trong danh sách yêu thích chưa
 const checkWishlistStatus = () => {
     const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]')
     isWishlisted.value = wishlist.some(item => item.id === props.book.id)
@@ -66,7 +69,7 @@ const toggleWishlist = () => {
         wishlist.splice(index, 1)
         isWishlisted.value = false
     } else {
-   
+
         wishlist.push({
             id: props.book.id,
             name: props.book.title,
@@ -103,7 +106,12 @@ const addToCart = () => {
 
     localStorage.setItem('cart', JSON.stringify(cart));
     window.dispatchEvent(new Event('storage'));
-    alert(`Đã thêm "${props.book.title}" vào giỏ hàng!`);
+    toat.success(`Đã thêm "${props.book.title}" vào giỏ hàng!`, {
+        timeout: 2000,
+        icon: "bi-bag-plus",
+        closeOnClick: true,
+        pauseOnHover: false
+    });
 }
 
 const formatPrice = (p) => {

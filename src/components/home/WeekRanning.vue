@@ -1,60 +1,74 @@
 <template>
     <section class="weekly-rankings">
-
         <h2 class="rankings-title">Xếp hạng hàng tuần</h2>
 
-        <div class="rankings-body">
-            <div class="featured-card">
+        <div class="rankings-body" v-if="top1">
+            <div class="featured-card" @click="goToDetail(top1.id)">
                 <div class="featured-top-badge">TOP 1</div>
-                <h3 class="featured-book-title"></h3>
-                <p class="featured-author">
-                </p>
-                <div class="featured-img-wrap">
-                    <img class="featured-img" referrerpolicy="no-referrer" />
+
+                <div class="featured-info-top">
+                    <h3 class="featured-book-title">{{ top1.title }}</h3>
+                    <p class="featured-author">{{ top1.author }}</p>
                 </div>
+
+                <div class="featured-img-wrap">
+                    <img :src="top1.imageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000'"
+                        class="featured-img" :alt="top1.title" referrerpolicy="no-referrer" />
+                </div>
+
                 <span class="featured-rank-bg">01</span>
             </div>
 
             <div class="rankings-right">
-
                 <div class="rank-grid">
-                    <div v-for="book in rankings" :key="book.rank" class="rank-card">
-                        <span class="rank-number">{{ String(book.rank).padStart(2, '0') }}</span>
+                    <div v-for="book in topOthers" :key="book.ranking" class="rank-card" @click="goToDetail(book.id)">
+                        <span class="rank-number">{{ String(book.ranking).padStart(2, '0') }}</span>
                         <div class="rank-info">
-                            <p class="rank-book-title"></p>
-                            <p class="rank-author"></p>
+                            <p class="rank-book-title" :title="book.title">{{ book.title }}</p>
+                            <p class="rank-author">{{ book.author }}</p>
                         </div>
                     </div>
                 </div>
+
                 <div class="cta-banner">
                     <div class="cta-text">
                         <p class="cta-heading">Tác giả mới của tháng</p>
                         <p class="cta-sub">Khám phá những ngôi sao đang lên trong lĩnh vực văn học</p>
                     </div>
-                    <button class="cta-btn" aria-label="Xem thêm">
+                    <button class="cta-btn" aria-label="Xem thêm" @click="router.push('/product')">
                         <i class="bi bi-arrow-right"></i>
                     </button>
                 </div>
-
             </div>
         </div>
-
     </section>
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import books from '../../data/products.json'
+const router = useRouter();
 
 
-const rankings = [
-    { rank: 2 },
-    { rank: 3 },
-    { rank: 4 },
-    { rank: 5 },
-]
+const top1 = computed(() => {
+    return books.find(b => b.ranking === 1);
+});
+
+
+const topOthers = computed(() => {
+    return books
+        .filter(book => book.ranking > 1 && book.ranking <= 5)
+        .sort((a, b) => a.ranking - b.ranking);
+});
+
+const goToDetail = (id) => {
+    router.push(`/product/${id}`);
+};
 </script>
 
 <style scoped>
-/* ── Section ── */
+
 .weekly-rankings {
     display: flex;
     flex-direction: column;
@@ -72,7 +86,6 @@ const rankings = [
     margin: 0;
 }
 
-/* ── Body layout ── */
 .rankings-body {
     display: grid;
     grid-template-columns: 398.67px 1fr;
@@ -80,14 +93,6 @@ const rankings = [
     gap: 24px;
 }
 
-@media (max-width: 900px) {
-    .rankings-body {
-        grid-template-columns: 1fr;
-        height: auto;
-    }
-}
-
-/* ── LEFT: Featured card ── */
 .featured-card {
     position: relative;
     background: #F3F4F5;

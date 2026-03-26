@@ -99,17 +99,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, h } from 'vue'
 import usersData from '../../data/user.json'
+import { useToast } from "vue-toastification"
 
+const toast = useToast()
 const showModal = ref(false)
 const isEditing = ref(false)
 const addresses = ref([])
 
-
 const storedUser = JSON.parse(localStorage.getItem('user-info'))
 const currentUserId = storedUser?.id
-
 const currentUserJson = usersData.find(u => u.id === currentUserId) || {}
 
 const initialForm = {
@@ -130,13 +130,11 @@ onMounted(() => {
 
 const loadAddresses = () => {
     const allSavedAddresses = JSON.parse(localStorage.getItem('user_addresses')) || []
-
     const userAddresses = allSavedAddresses.filter(ad => ad.userId === currentUserId)
 
     if (userAddresses.length > 0) {
         addresses.value = userAddresses
     } else if (currentUserJson.address) {
-
         const defaultAd = {
             id: Date.now(),
             userId: currentUserId,
@@ -147,9 +145,10 @@ const loadAddresses = () => {
             isDefault: true
         }
         addresses.value = [defaultAd]
-        saveToLocalStorage(true)
+        saveToLocalStorage()
     }
 }
+
 const formatPhone = (phone) => {
     if (!phone) return '';
     const p = phone.toString();
@@ -157,13 +156,12 @@ const formatPhone = (phone) => {
     return p.substring(0, 3) + '****' + p.substring(p.length - 3);
 }
 
-const saveToLocalStorage = (isGlobal = false) => {
+const saveToLocalStorage = () => {
     const allSavedAddresses = JSON.parse(localStorage.getItem('user_addresses')) || []
-
     const otherUsersAddresses = allSavedAddresses.filter(ad => ad.userId !== currentUserId)
-
     const finalData = [...otherUsersAddresses, ...addresses.value]
     localStorage.setItem('user_addresses', JSON.stringify(finalData))
+    window.dispatchEvent(new Event('storage'))
 }
 
 const openModal = (ad = null) => {
@@ -184,15 +182,24 @@ const openModal = (ad = null) => {
 const closeModal = () => { showModal.value = false }
 
 const saveAddress = () => {
+    if (!form.value.fullname || !form.value.phone || !form.value.city) {
+        toast.warning("Vui lòng điền đầy đủ thông tin bắt buộc");
+        return;
+    }
+
     if (form.value.isDefault) {
         addresses.value.forEach(a => a.isDefault = false)
     }
 
     if (isEditing.value) {
         const index = addresses.value.findIndex(a => a.id === form.value.id)
-        if (index !== -1) addresses.value[index] = { ...form.value }
+        if (index !== -1) {
+            addresses.value[index] = { ...form.value }
+            toast.success("Đã cập nhật địa chỉ");
+        }
     } else {
         addresses.value.push({ ...form.value, id: Date.now(), userId: currentUserId })
+        toast.success("Đã thêm địa chỉ mới");
     }
 
     if (addresses.value.length === 1) {
@@ -204,24 +211,60 @@ const saveAddress = () => {
 }
 
 const deleteAddress = (id) => {
-    if (confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
-        const adToDelete = addresses.value.find(a => a.id === id)
-        addresses.value = addresses.value.filter(a => a.id !== id)
+    const adToDelete = addresses.value.find(a => a.id === id);
+    if (!adToDelete) return;
 
-        if (adToDelete?.isDefault && addresses.value.length > 0) {
-            addresses.value[0].isDefault = true
+    toast.warning({
+        component: {
+            render() {
+                return h('div', { class: 'p-1' }, [
+                    h('p', { class: 'mb-2 small text-dark' }, [
+                        'Xóa địa chỉ: ',
+                        h('strong', adToDelete.fullname),
+                        '?'
+                    ]),
+                    h('div', { class: 'd-flex gap-2' }, [
+                        h('button', {
+                            class: 'btn btn-danger btn-sm px-3 fw-bold border-0',
+                            onClick: () => {
+                                this.$emit("close-toast"); 
+                                executeDelete(id);         
+                            }
+                        }, 'Xóa'),
+                        h('button', {
+                            class: 'btn btn-light btn-sm px-3 border',
+                            onClick: () => this.$emit("close-toast")
+                        }, 'Hủy')
+                    ])
+                ]);
+            }
         }
+    }, {
+        timeout: 5000,
+        closeOnClick: false,
+        draggable: false,
+        icon: "bi bi-exclamation-triangle-fill"
+    });
+};
 
-        saveToLocalStorage()
+const executeDelete = (id) => {
+    addresses.value = addresses.value.filter(a => a.id !== id)
+    if (addresses.value.length > 0 && !addresses.value.some(a => a.isDefault)) {
+        addresses.value[0].isDefault = true
     }
+    saveToLocalStorage()
+    toast.error("Đã xóa địa chỉ thành công");
 }
 
 const setDefault = (id) => {
     addresses.value.forEach(a => a.isDefault = a.id === id)
     saveToLocalStorage()
+    toast.info("Đã đặt làm địa chỉ mặc định", {
+        icon: "bi bi-check-circle-fill",
+        timeout: 2000
+    });
 }
 </script>
-
 <style scoped>
 .ad-title {
     font-weight: 800;
@@ -433,4 +476,5 @@ const setDefault = (id) => {
     background: #e5e5e5;
     color: #191C1D;
 }
+
 </style>

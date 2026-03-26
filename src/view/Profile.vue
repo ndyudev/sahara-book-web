@@ -44,11 +44,25 @@
             </div>
         </div>
     </div>
+    <Transition name="fade">
+        <div v-if="confirmData.show" class="sb-overlay">
+            <div class="sb-confirm-card">
+                <div class="sb-confirm-icon"><i class="bi bi-box-arrow-right"></i></div>
+                <h4 class="fw-bold">Đăng xuất?</h4>
+                <p class="text-muted">Bạn có chắc chắn muốn rời khỏi hệ thống SaharaBook không?</p>
+                <div class="sb-confirm-btns">
+                    <button @click="confirmData.show = false" class="btn-cancel">Quay lại</button>
+                    <button @click="executeLogout" class="btn-confirm">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+    </Transition>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { useToast } from 'vue-toastification';
 
 const router = useRouter()
 
@@ -57,26 +71,11 @@ const user = ref({
     avatar: ''
 })
 
-const loadUserData = () => {
-    const savedInfo = localStorage.getItem('user-info')
-    if (savedInfo) {
-        try {
-            user.value = JSON.parse(savedInfo)
-        } catch (e) {
-            console.error("Lỗi parse user-info:", e)
-        }
-    }
-}
-
-onMounted(() => {
-    loadUserData()
-
-    window.addEventListener('storage', loadUserData)
+const confirmData = reactive({
+    show: false
 })
 
-onUnmounted(() => {
-    window.removeEventListener('storage', loadUserData)
-})
+const toast = useToast();
 
 const navItems = [
     { key: 'personal', label: 'Thông tin cá nhân', icon: 'bi bi-person', path: '/profile' },
@@ -85,21 +84,53 @@ const navItems = [
     { key: 'wishlist', label: 'Danh sách yêu thích', icon: 'bi bi-heart', path: '/profile/wishlist' },
 ]
 
-const handleLogout = () => {
-    if (confirm('Bạn chắc chắn muốn đăng xuất chứ?')) {
-        localStorage.removeItem('user-token')
-        localStorage.removeItem('user-info')
-        router.push('/login').then(() => {
-            window.location.reload()
-        })
+const loadUserData = () => {
+    const savedInfo = localStorage.getItem('user-info')
+    if (savedInfo) {
+        try {
+            const parsed = JSON.parse(savedInfo)
+
+            user.value = { ...user.value, ...parsed }
+        } catch (e) {
+            console.error("Lỗi parse user-info:", e)
+        }
     }
 }
+
+
+const handleLogout = () => {
+    confirmData.show = true
+}
+
+const executeLogout = () => {
+
+    localStorage.removeItem('user-token')
+    localStorage.removeItem('user-info')
+
+    user.value = { fullname: '', avatar: '' }
+    confirmData.show = false
+
+    toast.success("Bạn đã đăng xuất thành công!", "success")
+    setTimeout(() => {
+        router.push('/')
+        window.dispatchEvent(new Event('storage'))
+    }, 1000)
+}
+
+onMounted(() => {
+    loadUserData()
+    window.addEventListener('storage', loadUserData)
+    window.addEventListener('user-info-changed', loadUserData)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('storage', loadUserData)
+    window.addEventListener('user-info-changed', loadUserData)
+})
 </script>
 
 <style scoped>
 .profile-nav {
-    position: sticky;
-    top: 24px;
     z-index: 10;
 }
 

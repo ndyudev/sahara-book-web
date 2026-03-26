@@ -1,8 +1,9 @@
 <template>
-  <nav class="navbar navbar-expand-lg shadow-sm " style="z-index: 9999;">
+  <nav class="navbar navbar-expand-lg shadow-sm" style="z-index: 9999;">
     <div class="container-xl">
-
-      <router-link to="/"><img :src="logo" alt="SaharaBook" height="36"></router-link>
+      <router-link to="/">
+        <img :src="logo" alt="SaharaBook" height="36">
+      </router-link>
 
       <div class="collapse navbar-collapse" id="navbarContent">
         <div class="d-flex align-items-center flex-grow-1 ms-lg-5">
@@ -20,15 +21,18 @@
               Danh mục
               <i class="bi bi-chevron-down nb-chevron" :class="{ 'nb-rotated': isCategoryOpen }"></i>
             </a>
-            <div class="nb-mega-menu" v-show="isCategoryOpen">
-              <div class="nb-mega-inner">
-                <div class="nb-mega-col" v-for="group in categories" :key="group.title">
-                  <p class="nb-mega-title">{{ group.title }}</p>
-                  <RouterLink :to="`/product`" v-for="item in group.items" :key="item.label" class="nb-mega-item"
-                    @click="isCategoryOpen = false">
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
-                  </RouterLink>
+
+            <div name="fade-slide">
+              <div class="nb-mega-menu" v-show="isCategoryOpen">
+                <div class="nb-mega-inner">
+                  <div class="nb-mega-col" v-for="group in categories" :key="group.title">
+                    <p class="nb-mega-title">{{ group.title }}</p>
+                    <RouterLink to="/product" v-for="item in group.items" :key="item.label" class="nb-mega-item"
+                      @click="isCategoryOpen = false">
+                      <i :class="item.icon"></i>
+                      <span>{{ item.label }}</span>
+                    </RouterLink>
+                  </div>
                 </div>
               </div>
             </div>
@@ -39,8 +43,9 @@
           <li class="nav-item position-relative">
             <RouterLink to="/cart" class="btn btn-link nb-variant p-0">
               <i class="bi bi-cart fs-5"></i>
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill nb-badge">{{ cartCount
-              }}</span>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill nb-badge">
+                {{ cartCount }}
+              </span>
             </RouterLink>
           </li>
 
@@ -60,85 +65,111 @@
               <i class="bi bi-chevron-down nb-chevron ms-1" :class="{ 'nb-rotated': isOpen }"></i>
             </button>
 
-            <div class="nb-dropdown" v-show="isOpen">
-              <template v-if="isLoggedIn">
-                <div class="nb-dd-header-new" v-if="isLoggedIn">
-                  <div class="nb-avatar-large overflow-hidden">
-                    <img v-if="user.avatar" :src="user.avatar" class="w-100 h-100 object-fit-cover">
-                    <span v-else>{{ user?.fullname?.charAt(0)?.toUpperCase() }}</span>
+            <Transition name="fade-slide">
+              <div class="nb-dropdown" v-show="isOpen">
+                <template v-if="isLoggedIn">
+                  <div class="nb-dd-header-new">
+                    <div class="nb-avatar-large overflow-hidden">
+                      <img v-if="user.avatar" :src="user.avatar" class="w-100 h-100 object-fit-cover">
+                      <span v-else>{{ user?.fullname?.charAt(0)?.toUpperCase() }}</span>
+                    </div>
+                    <div class="ms-3 overflow-hidden">
+                      <p class="nb-dd-name">Xin chào, {{ user.fullname }}</p>
+                      <p class="nb-dd-email">{{ user.email }}</p>
+                    </div>
                   </div>
-                  <div class="ms-3 overflow-hidden">
-                    <p class="nb-dd-name">Xin chào, {{ user.fullname }}</p>
-                    <p class="nb-dd-email">{{ user.email }}</p>
+                  <div class="nb-dd-body">
+                    <RouterLink to="/profile" class="nb-dd-item-new" @click="isOpen = false">
+                      <i class="bi bi-person-circle"></i><span>Hồ sơ cá nhân</span>
+                    </RouterLink>
+                    <RouterLink to="/profile/wishlist" class="nb-dd-item-new" @click="isOpen = false">
+                      <i class="bi bi-heart"></i><span>Sản phẩm yêu thích</span>
+                    </RouterLink>
+                    <RouterLink to="/profile/orders" class="nb-dd-item-new" @click="isOpen = false">
+                      <i class="bi bi-bag-check"></i><span>Quản lý đơn hàng</span>
+                    </RouterLink>
+                    <div class="nb-dd-divider"></div>
+                    <a href="#" class="nb-dd-item-new text-danger" @click.prevent="handleLogout">
+                      <i class="bi bi-box-arrow-right"></i><span>Đăng xuất</span>
+                    </a>
                   </div>
-                </div>
-                <div class="nb-dd-body">
-                  <RouterLink to="/profile" class="nb-dd-item-new" @click="isOpen = false">
-                    <i class="bi bi-person-circle"></i><span>Hồ sơ cá nhân</span>
-                  </RouterLink>
-                  <RouterLink to="/profile/wishlist" class="nb-dd-item-new" @click="isOpen = false">
-                    <i class="bi bi-heart"></i><span>Sản phẩm yêu thích</span>
-                  </RouterLink>
-                  <RouterLink to="/profile/orders" class="nb-dd-item-new" @click="isOpen = false">
-                    <i class="bi bi-bag-check"></i><span>Quản lý đơn hàng</span>
-                  </RouterLink>
-                  <div class="nb-dd-divider"></div>
-                  <a href="#" class="nb-dd-item-new text-danger" @click.prevent="handleLogout">
-                    <i class="bi bi-box-arrow-right"></i><span>Đăng xuất</span>
-                  </a>
-                </div>
-              </template>
-
-              <template v-else>
-                <div class="p-4 text-center">
-                  <div class="nb-avatar-placeholder mb-3">
-                    <i class="bi bi-person text-secondary fs-2"></i>
+                </template>
+                <template v-else>
+                  <div class="p-4 text-center">
+                    <div class="nb-avatar-placeholder mb-3">
+                      <i class="bi bi-person text-secondary fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">Chào mừng bạn!</h6>
+                    <p class="text-muted small mb-3">Đăng nhập để nhận nhiều ưu đãi hơn</p>
+                    <RouterLink to="/login" class="btn btn-primary w-100 rounded-pill mb-2" @click="isOpen = false"
+                      style="background: #FF8C00; border: none;"> Đăng nhập </RouterLink>
+                    <RouterLink to="/register" class="btn btn-outline-secondary w-100 rounded-pill small"
+                      @click="isOpen = false"> Đăng ký tài khoản </RouterLink>
                   </div>
-                  <h6 class="fw-bold mb-1">Chào mừng bạn!</h6>
-                  <p class="text-muted small mb-3">Đăng nhập để nhận nhiều ưu đãi hơn</p>
-                  <RouterLink to="/login" class="btn btn-primary w-100 rounded-pill mb-2" @click="isOpen = false"
-                    style="background: #FF8C00; border: none;">Đăng nhập
-                  </RouterLink>
-                  <RouterLink to="/register" class="btn btn-outline-secondary w-100 rounded-pill small"
-                    @click="isOpen = false">Đăng ký tài khoản</RouterLink>
-                </div>
-              </template>
-            </div>
+                </template>
+              </div>
+            </Transition>
           </li>
         </ul>
       </div>
     </div>
   </nav>
+  <Transition name="fade">
+    <div v-if="confirmData.show" class="sb-overlay">
+      <div class="sb-confirm-card">
+        <div class="sb-confirm-icon"><i class="bi bi-box-arrow-right"></i></div>
+        <h4 class="fw-bold">Đăng xuất?</h4>
+        <p class="text-muted">Bạn có chắc chắn muốn rời khỏi hệ thống SaharaBook không?</p>
+        <div class="sb-confirm-btns">
+          <button @click="confirmData.show = false" class="btn-cancel">Quay lại</button>
+          <button @click="executeLogout" class="btn-confirm">Đăng xuất</button>
+        </div>
+      </div>
+    </div>
+  </Transition>
 </template>
+
 <script setup>
 import logo from '../assets/logo/logo.png'
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 
-const router = useRouter()
-const isOpen = ref(false)
-const isCategoryOpen = ref(false)
-const dropdownRef = ref(null)
-const categoryRef = ref(null)
+const router = useRouter();
+const toast = useToast();
+const isOpen = ref(false);
+const isCategoryOpen = ref(false);
+const dropdownRef = ref(null);
+const categoryRef = ref(null);
+const user = ref(null);
+const cartCount = ref(0);
 
-const user = ref(null)
+
+const confirmData = reactive({
+  show: false
+})
+
+const handleLogout = () => {
+  confirmData.show = true
+}
+
+const executeLogout = () => {
+  localStorage.removeItem('user-token')
+  localStorage.removeItem('user-info')
+  user.value = null
+  isOpen.value = false
+  confirmData.show = false
+
+  toast.success("Bạn đã đăng xuất thành công!", "success")
+  router.push('/')
+}
+
 const isLoggedIn = computed(() => !!user.value)
 
 const checkUser = () => {
   const data = localStorage.getItem('user-info')
   user.value = data ? JSON.parse(data) : null
 }
-
-const handleLogout = () => {
-  if (confirm('Bạn muốn đăng xuất chứ?')) {
-    localStorage.removeItem('user-token')
-    localStorage.removeItem('user-info')
-    user.value = null
-    isOpen.value = false
-    router.push('/')
-  }
-}
-const cartCount = ref(0)
 
 const updateCartCount = () => {
   const data = localStorage.getItem('cart')
@@ -149,7 +180,6 @@ const updateCartCount = () => {
     cartCount.value = 0
   }
 }
-
 const categories = [
   {
     title: 'Văn học',
@@ -189,7 +219,6 @@ const categories = [
   },
 ]
 
-
 const handleClickOutside = (e) => {
   if (dropdownRef.value && !dropdownRef.value.contains(e.target)) isOpen.value = false
   if (categoryRef.value && !categoryRef.value.contains(e.target)) isCategoryOpen.value = false
@@ -197,20 +226,16 @@ const handleClickOutside = (e) => {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
-
   checkUser()
-
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'user-info' || !e.key) {
-      checkUser()
-    }
+  updateCartCount()
+  window.addEventListener('user-info-changed', checkUser)
+  window.addEventListener('storage', () => {
+    checkUser()
     updateCartCount()
   })
 })
-onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
+onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
