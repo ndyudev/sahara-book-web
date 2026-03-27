@@ -17,7 +17,7 @@
                         Tuyển chọn những cuốn sách hay và truyền cảm hứng nhất từ khắp nơi trên thế giới,
                         mang đến trải nghiệm đọc tuyệt vời ngay tại nhà bạn.
                     </p>
-                    <RouterLink :to="`/category/${slug}`"
+                    <RouterLink :to="`/product`"
                         class="btn btn-light btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg hover-scale">
                         Khám phá ngay
                     </RouterLink>
@@ -39,11 +39,8 @@
     max-width: 1280px;
     display: flex;
     align-items: center;
-
-
 }
 
-/* Overlay radial mờ (tương đương bản gốc) */
 .radial-overlay {
     position: absolute;
     inset: 0;
@@ -72,19 +69,6 @@
     animation: fadeInLeft 0.7s ease-out forwards;
 }
 
-.animate-book1 {
-    animation: bookTilt1 0.9s ease-out 0.3s forwards;
-    top: 80px;
-    right: 20px;
-}
-
-.animate-book2 {
-    animation: bookTilt2 0.9s ease-out 0.5s forwards;
-    top: 40px;
-    right: 120px;
-}
-
-/* Hover scale cho button */
 .hover-scale:hover {
     transform: scale(1.05);
     box-shadow: 0 10px 25px rgba(144, 77, 0, 0.3);

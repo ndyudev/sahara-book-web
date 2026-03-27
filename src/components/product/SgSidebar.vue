@@ -32,8 +32,6 @@ defineProps({ books: { type: Array, required: true } })
     display: flex;
     flex-direction: column;
     gap: 16px;
-    position: sticky;
-    top: 80px;
 }
 
 .suggest-header {

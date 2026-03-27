@@ -4,62 +4,68 @@
       <div class="row g-4 align-items-start justify-content-center">
         <div class="col-12 col-lg-8">
           <section>
-            <div class="d-flex align-items-end justify-content-between mb-4">
-              <h1 class="display-6 fw-bold mb-0">Giỏ hàng của bạn</h1>
-              <span class="text-muted fw-medium">({{ cartItems.length }} sản phẩm)</span>
+            <div class="d-flex align-items-end justify-content-between mb-4 pb-2 border-bottom">
+              <h1 class="h2 fw-bold mb-0">Giỏ hàng của bạn</h1>
+              <span class="text-muted fw-medium">{{ cartItems.length }} sản phẩm</span>
             </div>
 
-            <div class="d-flex flex-column gap-3">
+            <div class="cart-list-container position-relative">
               <TransitionGroup name="list">
                 <div v-for="item in cartItems" :key="item.id"
-                  class="cart-item-card p-4 rounded-4 d-flex gap-4 align-items-center bg-white border">
+                  class="cart-item-card p-3 p-md-4 rounded-4 d-flex gap-3 gap-md-4 align-items-center bg-white border mb-3 shadow-sm">
 
-                  <router-link :to="`/product/${item.id}`" class="cart-item-img rounded-3 overflow-hidden shadow-sm">
-                    <img :src="item.image" :alt="item.title" class="w-100 h-100 object-fit-cover">
+                  <router-link :to="`/product/${item.id}`" class="cart-item-img rounded-3 overflow-hidden border">
+                    <img :src="item.image" :alt="item.title" class="w-100 h-100 object-fit-cover hover-zoom">
                   </router-link>
 
-                  <div class="flex-grow-1 h-100 d-flex flex-column justify-content-between">
+                  <div class="flex-grow-1 d-flex flex-column gap-2">
                     <div>
-                      <span class="text-brown extra-small fw-bold text-uppercase tracking-wider">
+                      <span class="badge bg-soft-brown text-brown extra-small fw-bold text-uppercase mb-1">
                         {{ item.category }}
                       </span>
                       <router-link :to="`/product/${item.id}`" class="text-decoration-none text-dark">
-                        <h5 class="fw-bold mb-1">{{ item.title }}</h5>
+                        <h5 class="fw-bold mb-1 line-clamp-1">{{ item.title }}</h5>
                       </router-link>
-                      <p class="text-muted small mb-0">{{ item.author }} • {{ item.format }}</p>
+                      <p class="text-muted small mb-0">{{ item.author }} <span class="mx-1">•</span> {{ item.format }}
+                      </p>
                     </div>
 
-                    <div class="d-flex align-items-center gap-4 mt-3">
-                      <div class="qty-toggle d-flex align-items-center bg-light rounded-pill px-2 border">
-                        <button @click="updateQty(item.id, -1)" class="btn btn-sm border-0">
-                          <i class="bi bi-dash"></i>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="qty-group d-flex align-items-center bg-light rounded-pill border">
+                        <button @click="updateQty(item.id, -1)" class="btn btn-sm px-2 border-0">
+                          <i class="bi bi-dash-lg"></i>
                         </button>
-                        <span class="px-2 small fw-bold text-center" style="width: 30px;">
+                        <span class="px-2 small fw-bold text-center" style="min-width: 30px;">
                           {{ item.quantity }}
                         </span>
-                        <button @click="updateQty(item.id, 1)" class="btn btn-sm border-0">
-                          <i class="bi bi-plus"></i>
+                        <button @click="updateQty(item.id, 1)" class="btn btn-sm px-2 border-0">
+                          <i class="bi bi-plus-lg"></i>
                         </button>
                       </div>
+
                       <button @click="removeItem(item.id)"
-                        class="btn btn-link text-danger text-decoration-none small fw-bold p-0">
+                        class="btn btn-link text-danger text-decoration-none small fw-bold p-0 opacity-75 hover-opacity-100">
                         <i class="bi bi-trash3 me-1"></i> Xóa
                       </button>
                     </div>
                   </div>
 
-                  <div class="text-end h-100 d-flex flex-column justify-content-between">
-                    <div class="fs-5 fw-bold">{{ formatPrice(item.price) }}</div>
-                    <div class="extra-small text-muted">{{ item.status }}</div>
+                  <div class="text-end d-flex flex-column justify-content-center border-start ps-3 ps-md-4"
+                    style="min-width: 100px;">
+                    <div class="fs-5 fw-bold text-dark">{{ formatPrice(item.price * item.quantity) }}</div>
+                    <div class="extra-small text-success fw-bold">{{ item.status || 'Còn hàng' }}</div>
                   </div>
                 </div>
               </TransitionGroup>
 
               <div v-if="cartItems.length === 0"
-                class="text-center py-5 rounded-4 border-2 border-dashed bg-light shadow-sm">
-                <i class="bi bi-cart-x fs-1 text-muted opacity-25"></i>
-                <p class="text-muted mt-3 fw-medium">Giỏ hàng của bạn đang trống</p>
-                <RouterLink to="/product" class="btn btn-link text-brown fw-bold text-decoration-none">
+                class="text-center py-5 rounded-4 border-2 border-dashed bg-white shadow-sm">
+                <div class="mb-3">
+                  <i class="bi bi-cart-x display-1 text-muted opacity-25"></i>
+                </div>
+                <h4 class="fw-bold text-muted">Giỏ hàng đang trống</h4>
+                <p class="text-muted mb-4">Có vẻ như bạn chưa chọn được cuốn sách ưng ý nào.</p>
+                <RouterLink to="/product" class="btn btn-brown px-4 py-2 rounded-pill fw-bold text-white shadow-sm">
                   <i class="bi bi-arrow-left me-2"></i>Tiếp tục mua sắm
                 </RouterLink>
               </div>
@@ -67,51 +73,56 @@
           </section>
         </div>
 
-        <div class="col-12 col-lg-4 sticky-sidebar">
+        <div class="col-12 col-lg-4">
           <div class="summary-card p-4 rounded-4 bg-white shadow-sm border">
-            <h5 class="fw-bold mb-4">Tóm tắt đơn hàng</h5>
+            <h5 class="fw-bold mb-4 border-bottom pb-3">Chi tiết thanh toán</h5>
+
             <div class="d-flex flex-column gap-3 mb-4">
-              <div class="d-flex justify-content-between small">
-                <span class="text-muted">Tạm tính</span>
-                <span class="fw-bold">{{ formatPrice(subtotal) }}</span>
+              <div class="d-flex justify-content-between text-muted">
+                <span>Tạm tính ({{ cartItems.length }} SP)</span>
+                <span class="fw-bold text-dark">{{ formatPrice(subtotal) }}</span>
               </div>
-              <div class="d-flex justify-content-between small">
-                <span class="text-muted">Phí vận chuyển</span>
-                <span class="fw-bold">{{ formatPrice(shipping) }}</span>
+              <div class="d-flex justify-content-between text-muted">
+                <span>Phí vận chuyển</span>
+                <span class="fw-bold text-dark">{{ subtotal > 0 ? formatPrice(shipping) : '0đ' }}</span>
               </div>
-              <div class="d-flex justify-content-between small">
-                <span class="text-muted">Giảm giá</span>
-                <span class="fw-bold text-danger">-0đ</span>
+              <div class="d-flex justify-content-between text-danger fw-medium">
+                <span>Giảm giá</span>
+                <span>-0đ</span>
               </div>
-              <hr class="my-2 opacity-10">
+
+              <div class="separator my-2"></div>
+
               <div class="d-flex justify-content-between align-items-end">
-                <span class="fw-bold">Tổng cộng</span>
-                <span class="fs-3 fw-bolder text-brown">{{ formatPrice(total) }}</span>
+                <span class="fw-bold fs-5">Tổng cộng</span>
+                <div class="text-end">
+                  <span class="fs-2 fw-bolder text-brown d-block">{{ formatPrice(total) }}</span>
+                  <small class="text-muted extra-small">(Đã bao gồm VAT)</small>
+                </div>
               </div>
             </div>
 
-            <div class="mb-4">
-              <label class="extra-small fw-bold text-muted text-uppercase mb-2 d-block tracking-wider">Mã
-                giảm giá</label>
-              <div class="input-group input-group-sm">
-                <input type="text" class="form-control bg-light border-0" placeholder="Nhập mã...">
-                <button class="btn btn-dark px-3 fw-bold text-uppercase" style="font-size: 10px;">Áp
-                  dụng</button>
+            <div class="promo-box mb-4 p-3 bg-light rounded-3">
+              <label class="extra-small fw-bold text-muted text-uppercase mb-2 d-block tracking-wider">Mã giảm
+                giá</label>
+              <div class="d-flex gap-2">
+                <input type="text" class="form-control form-control-sm border-0 shadow-none" placeholder="NHAPMA2024">
+                <button class="btn btn-dark btn-sm px-3 fw-bold text-uppercase">Áp dụng</button>
               </div>
             </div>
 
-            <button
-              class="btn btn-checkout w-100 py-3 rounded-pill fw-bold text-white d-flex align-items-center justify-content-center gap-2">
+            <router-link to="/checkout" :class="{ 'disabled': cartItems.length === 0 }"
+              class="btn btn-checkout w-100 py-3 rounded-pill fw-bold text-white shadow-orange d-flex align-items-center justify-content-center gap-2">
               Tiến hành thanh toán
-              <i class="bi bi-arrow-right"></i>
-            </button>
+              <i class="bi bi-arrow-right fs-5"></i>
+            </router-link>
 
-            <div class="mt-4 d-flex flex-column gap-2">
-              <div class="extra-small text-muted d-flex align-items-center gap-2 fw-bold opacity-75">
-                <i class="bi bi-shield-check text-brown fs-6"></i> Thanh toán an toàn 100%
+            <div class="mt-4 pt-3 border-top">
+              <div class="extra-small text-muted d-flex align-items-center gap-3 mb-2">
+                <i class="bi bi-shield-check text-brown fs-6"></i> <span>Thanh toán an toàn 100%</span>
               </div>
-              <div class="extra-small text-muted d-flex align-items-center gap-2 fw-bold opacity-75">
-                <i class="bi bi-truck text-brown fs-6"></i> Giao hàng từ 1-3 ngày
+              <div class="extra-small text-muted d-flex align-items-center gap-3">
+                <i class="bi bi-truck text-brown fs-6"></i><span>Giao hàng từ 1-3 ngày</span>
               </div>
             </div>
           </div>
@@ -122,113 +133,171 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import books from '../data/products.json'
+import { ref, computed, onMounted } from 'vue'
+import { useToast } from "vue-toastification"
 
-const cartItems = ref(
-  books.slice(0, 3).map(b => ({
-    id: b.id,
-    title: b.title,
-    author: b.author,
-    category: b.category,
-    price: b.salePrice,
-    quantity: 1,
-    image: b.imageUrl,
-    format: b.format,
-    status: b.status,
-  }))
-)
-
+const toast = useToast()
+const cartItems = ref([])
 const shipping = 30000
+
+const loadCart = () => {
+  const data = localStorage.getItem('cart')
+  cartItems.value = data ? JSON.parse(data) : []
+}
+
+const saveCart = () => {
+  localStorage.setItem('cart', JSON.stringify(cartItems.value))
+  
+  window.dispatchEvent(new Event('storage'))
+}
+
 const subtotal = computed(() =>
-  cartItems.value.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  cartItems.value.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0)
 )
-const total = computed(() => subtotal.value + shipping)
+
+const total = computed(() => subtotal.value + (cartItems.value.length > 0 ? shipping : 0))
 
 const updateQty = (id, delta) => {
   const item = cartItems.value.find(i => i.id === id)
-  if (item) item.quantity = Math.max(1, item.quantity + delta)
+  if (!item) return
+
+  const newQty = item.quantity + delta
+  if (newQty >= 1 && newQty <= 20) { 
+    saveCart()
+  } else if (newQty < 1) {
+    removeItem(id)
+  } else {
+    toast.warning("Số lượng tối đa là 20 cuốn")
+  }
 }
+
 const removeItem = (id) => {
-  cartItems.value = cartItems.value.filter(i => i.id !== id)
+  const index = cartItems.value.findIndex(i => i.id === id)
+  if (index === -1) return
+
+  const itemBackup = cartItems.value[index]
+  cartItems.value.splice(index, 1)
+  saveCart()
+
+  toast.error(`Đã xóa "${itemBackup.title}"`, {
+    timeout: 5000,
+    icon: "bi bi-trash3",
+    closeButton: "button",
+    onClick: () => {
+    
+      cartItems.value.splice(index, 0, itemBackup)
+      saveCart()
+      toast.success("Đã khôi phục sản phẩm!")
+    }
+  })
 }
-const formatPrice = (p) => new Intl.NumberFormat('vi-VN').format(p) + 'đ'
+
+const formatPrice = (p) => {
+  return (Number(p) || 0).toLocaleString('vi-VN') + 'đ'
+}
+
+onMounted(() => {
+  loadCart()
+})
 </script>
 
 <style scoped>
+
 .text-brown {
   color: #ff8c00;
 }
 
-.btn-checkout {
-  background: #FF8C00;
-  /* Màu cam chủ đạo của bạn */
+.btn-brown {
+  background: #ff8c00;
   border: none;
-  font-size: 15px;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-
 }
 
-.btn-checkout:hover {
+.btn-brown:hover {
   background: #e67e00;
-  transform: translateY(-1px);
-
 }
 
-.extra-small {
-  font-size: 10px;
+.bg-soft-brown {
+  background: rgba(255, 140, 0, 0.1);
 }
 
-.tracking-wider {
-  letter-spacing: 0.1em;
+
+.cart-item-card {
+  transition: all 0.3s ease;
 }
 
-.cursor-pointer {
-  cursor: pointer;
-}
-
-.sticky-sidebar {
-  position: sticky;
-  top: 20px;
+.cart-item-card:hover {
+  border-color: #ff8c00 !important;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
 }
 
 .cart-item-img {
-  width: 100px;
-  height: 140px;
+  width: 90px;
+  height: 130px;
   flex-shrink: 0;
 }
 
-.aspect-ratio-book {
-  aspect-ratio: 2/3;
-}
-
-.hover-scale {
+.hover-zoom {
   transition: transform 0.5s ease;
 }
 
-.recommend-card:hover .hover-scale {
-  transform: scale(1.08);
+.cart-item-card:hover .hover-zoom {
+  transform: scale(1.1);
 }
 
+.btn-checkout {
+  background: #FF8C00;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-checkout:hover:not(.disabled) {
+  background: #e67e00;
+  transform: scale(1.02);
+}
+
+.btn-checkout.disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.shadow-orange {
+  box-shadow: 0 8px 20px rgba(255, 140, 0, 0.3);
+}
+
+/* Utilities */
+.extra-small {
+  font-size: 11px;
+}
+
+.separator {
+  height: 1px;
+  background: #eee;
+  width: 100%;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Transition Group */
+.list-move,
 .list-enter-active,
 .list-leave-active {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s ease;
 }
 
 .list-enter-from,
 .list-leave-to {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateX(30px);
 }
 
+/* Khi xóa phần tử, tránh các phần tử khác bị giật */
 .list-leave-active {
   position: absolute;
   width: 100%;
-  z-index: 0;
-}
-
-.list-move {
-  transition: transform 0.4s ease;
 }
 </style>

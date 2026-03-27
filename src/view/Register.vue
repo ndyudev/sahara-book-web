@@ -105,9 +105,13 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router';
+import { useToast } from 'vue-toastification';
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+const toast = useToast();
+const router = useRouter();
 
 const form = reactive({
   name: '',
@@ -156,8 +160,29 @@ const validateForm = () => {
 
 const handleSignup = () => {
   if (validateForm()) {
-    console.log('Đăng ký thành công:', form)
 
+    const existingUsers = JSON.parse(localStorage.getItem('sahara-users') || '[]');
+    if (existingUsers.find(u => u.email === form.email)) {
+      toast.error("Email này đã được đăng ký rồi!");
+      return;
+    }
+
+    existingUsers.push({
+      email: form.email,
+      password: form.password,
+      fullname: form.name,
+      avatar: ''
+    });
+
+    localStorage.setItem('sahara-users', JSON.stringify(existingUsers));
+
+    toast.success("Chào mừng bạn đến với SaharaBook!");
+
+    setTimeout(() => {
+      router.push('/login')
+    }, 2000)
+  } else {
+    toast.error("Vui lòng điền đúng thông tin!")
   }
 }
 </script>

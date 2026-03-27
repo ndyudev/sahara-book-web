@@ -1,0 +1,26 @@
+[
+    {
+        "id": "user1",
+        "username": "abc",
+        "password": "123456",
+        "fullname": "Nguyễn Văn A",
+        "email": "abc@gmail.com",
+        "phone": "0901234567",
+        "dob": "23/05/2006",
+        "address": "123 Đường Láng, Đống Đa, Hà Nội",
+        "avatar": "",
+        "role": "USER"
+    },
+    {
+        "id": "user2",
+        "username": "admin_sahara",
+        "password": "123456",
+        "fullname": "Trần Thị Ngọc",
+        "email": "admin@saharabook.com",
+        "phone": "02433334444",
+        "dob": "02/03/2006",
+        "address": "Trụ sở SaharaBook, Cầu Giấy, Hà Nội",
+        "avatar": "https://i.pravatar.cc/150?u=u5",
+        "role": "ADMIN"
+    }
+]

@@ -41,11 +41,11 @@
         </div>
 
         <div class="pd-actions">
-          <button class="pd-btn-cart">
+          <button class="pd-btn-cart" @click="addToCart()">
             <i class="bi bi-bag-plus"></i>
             Thêm vào giỏ
           </button>
-          <button class="pd-btn-buy">Mua ngay</button>
+          <button class="pd-btn-buy" @click="buyNow()">Mua ngay</button>
         </div>
 
       </div>
@@ -56,14 +56,74 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import books from '../data/products.json'
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 
 const book = books.find(b => b.id === Number(route.params.id))
 if (!book) router.push('/')
 
+const addToCart = () => {
+  const cartData = localStorage.getItem('cart')
+  let cart = cartData ? JSON.parse(cartData) : []
+
+  const index = cart.findIndex(item => item.id === book.id)
+
+  if (index !== -1) {
+    cart[index].quantity += 1
+  } else {
+
+    const newProduct = {
+      id: book.id,
+      title: book.title,
+      price: book.salePrice,
+      image: book.imageUrl,
+      quantity: 1,
+      author: book.author,
+      category: book.category
+    }
+    cart.push(newProduct)
+  }
+
+  localStorage.setItem('cart', JSON.stringify(cart))
+
+  window.dispatchEvent(new Event('storage'))
+
+
+  toast.success(`Đã thêm "${book.title}" vào giỏ hàng!`)
+
+}
+
+const buyNow = () => {
+  const cartData = localStorage.getItem('cart')
+  let cart = cartData ? JSON.parse(cartData) : []
+
+  const index = cart.findIndex(item => item.id === book.id)
+
+  if (index !== -1) {
+    cart[index].quantity += 1
+  } else {
+
+    const newProduct = {
+      id: book.id,
+      title: book.title,
+      price: book.salePrice,
+      image: book.imageUrl,
+      quantity: 1,
+      author: book.author,
+      category: book.category
+    }
+    cart.push(newProduct)
+  }
+
+  localStorage.setItem('cart', JSON.stringify(cart))
+
+  window.dispatchEvent(new Event('storage'))
+  router.push('/checkout')
+}
 const bookMeta = computed(() => [
   { label: 'ISBN-13', value: book?.isbn },
   { label: 'NXB', value: book?.publisher },
@@ -71,7 +131,9 @@ const bookMeta = computed(() => [
   { label: 'Định dạng', value: book?.format },
 ])
 
-const formatPrice = (price) => Number(price).toLocaleString('vi-VN') + 'đ'
+const formatPrice = (price) => {
+  return Number(price || 0).toLocaleString('vi-VN') + 'đ'
+}
 </script>
 <style>
 .pd-page {

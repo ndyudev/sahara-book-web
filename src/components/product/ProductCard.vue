@@ -1,27 +1,123 @@
 <template>
     <div class="product-card">
-        <div class="product-img-wrap">
-            <img :src="book.image" :alt="book.title" class="product-img" referrerpolicy="no-referrer" />
-            <span v-if="book.badge" class="product-badge" :class="book.badge === 'New' ? 'badge-new' : 'badge-sale'">
-                {{ book.badge }}
-            </span>
-        </div>
+        <RouterLink :to="`/product/${book.id}`" class="product-link">
+            <div class="product-img-wrap">
+                <img :src="book.imageUrl || book.image" :alt="book.title" class="product-img"
+                    referrerpolicy="no-referrer" />
+
+                <span v-if="book.badge" class="product-badge"
+                    :class="book.badge === 'NEW' ? 'badge-new' : 'badge-sale'">
+                    {{ book.badge }}
+                </span>
+            </div>
+        </RouterLink>
+
         <div class="product-info">
             <span class="product-category">{{ book.category }}</span>
             <p class="product-title">{{ book.title }}</p>
-            <p class="product-desc">{{ book.desc }}</p>
+            <p class="product-desc">{{ book.description }}</p>
+        </div>
+
+        <div class="product-info pt-0">
             <div class="product-footer">
-                <span class="product-price">{{ book.price }}</span>
-                <button class="product-cart-btn">
-                    <i class="bi bi-bag-plus"></i>
-                </button>
+                <div class="price-stack">
+                    <span class="product-price">{{ formatPrice(book.salePrice) }}</span>
+                    <span v-if="book.originalPrice > book.salePrice" class="product-price-old">
+                        {{ formatPrice(book.originalPrice) }}
+                    </span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="product-wish-btn" :class="{ 'is-active': isWishlisted }"
+                        @click.stop="toggleWishlist">
+                        <i :class="isWishlisted ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                    </button>
+                    <button class="product-cart-btn" @click.stop="addToCart">
+                        <i class="bi bi-bag-plus"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-defineProps({ book: { type: Object, required: true } })
+import { ref, onMounted } from 'vue'
+import { useToast } from 'vue-toastification'
+
+const toat = useToast();
+
+const props = defineProps({
+    book: { type: Object, required: true }
+})
+const isWishlisted = ref(false)
+
+const checkWishlistStatus = () => {
+    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]')
+    isWishlisted.value = wishlist.some(item => item.id === props.book.id)
+}
+
+onMounted(() => {
+    checkWishlistStatus()
+})
+
+const toggleWishlist = () => {
+    let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]')
+    const index = wishlist.findIndex(item => item.id === props.book.id)
+
+    if (index > -1) {
+        wishlist.splice(index, 1)
+        isWishlisted.value = false
+    } else {
+
+        wishlist.push({
+            id: props.book.id,
+            name: props.book.title,
+            price: props.book.salePrice,
+            image: props.book.imageUrl || props.book.image
+        })
+        isWishlisted.value = true
+    }
+
+    localStorage.setItem('wishlist', JSON.stringify(wishlist))
+
+    window.dispatchEvent(new Event('storage'))
+}
+
+const addToCart = () => {
+    const cartData = localStorage.getItem('cart');
+    let cart = cartData ? JSON.parse(cartData) : [];
+
+    const index = cart.findIndex(item => item.id === props.book.id);
+
+    if (index !== -1) {
+        cart[index].quantity += 1;
+        cart[index].price = Number(props.book.salePrice) || 0;
+    } else {
+        const newProduct = {
+            id: props.book.id,
+            title: props.book.title,
+            price: Number(props.book.salePrice) || 0,
+            image: props.book.imageUrl || props.book.image,
+            quantity: 1
+        };
+        cart.push(newProduct);
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    window.dispatchEvent(new Event('storage'));
+    toat.success(`Đã thêm "${props.book.title}" vào giỏ hàng!`, {
+        timeout: 2000,
+        icon: "bi-bag-plus",
+        closeOnClick: true,
+        pauseOnHover: false
+    });
+}
+
+const formatPrice = (p) => {
+    const value = Number(p) || 0
+    return value.toLocaleString('vi-VN') + 'đ'
+}
 </script>
 
 <style>
@@ -149,5 +245,58 @@ defineProps({ book: { type: Object, required: true } })
 .product-cart-btn:hover {
     background: #FF8C00;
     color: #fff;
+}
+
+.price-stack {
+    display: flex;
+    flex-direction: column;
+}
+
+.product-price-old {
+    font-size: 11px;
+    color: #94A3B8;
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
+.badge-new {
+    background: #FF8C00;
+}
+
+/* Nút yêu thích */
+.product-wish-btn {
+    width: 34px;
+    height: 34px;
+    background: rgba(239, 68, 68, 0.05);
+    /* Màu đỏ nhạt */
+    border: 1px solid rgba(239, 68, 68, 0.1);
+    border-radius: 8px;
+    color: #ef4444;
+    /* Màu đỏ trái tim */
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.product-wish-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    transform: scale(1.1);
+}
+
+.product-wish-btn.is-active {
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+}
+
+/* Điều chỉnh lại layout footer một chút */
+.product-footer {
+    display: flex;
+    align-items: flex-end;
+    /* Căn nút xuống dưới cùng */
+    justify-content: space-between;
 }
 </style>
