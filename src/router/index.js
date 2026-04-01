@@ -1,5 +1,10 @@
 import { createWebHistory, createRouter } from "vue-router";
 
+
+import UserLayout from '../layouts/UserLayout.vue' 
+import AdminLayout from '../layouts/AdminLayout.vue'
+
+
 import Home from "../view/Home.vue";
 import Cart from "../view/Cart.vue";
 import Login from "../view/Login.vue";
@@ -14,8 +19,9 @@ import Orders from "../components/profile/Orders.vue";
 import OrderDetail from "../components/profile/OrderDetail.vue";
 import Wishlist from "../components/profile/Wishlist.vue";
 
-// Trang Admin :>>>
-import AdminLayout from '../layouts/AdminLayout.vue'
+
+
+
 import AdminDashboard from '../view/AdminDashboard.vue'
 import BookManager from '../view/BookManager.vue'
 import BookCreate from '../view/BookCreate.vue'
@@ -28,7 +34,7 @@ import InvoiceManager from '../view/InvoiceManager.vue'
 import UserManager from '../view/UserManager.vue'
 import UserCreate from '../view/UserCreate.vue'
 
-// trang chi tiết cua admin :)))))))))))
+
 import UserDetail from '../details/UserDetail.vue'
 import AuthorDetail from '../details/AuthorDetail.vue'
 import CategoryDetail from '../details/CategoryDetail.vue'
@@ -36,109 +42,59 @@ import BookDetail from '../details/BookDetail.vue'
 import InvoiceDetail from '../details/InvoiceDetail.vue'
 import OrderDetailAdmin from '../details/OrderDetailAdmin.vue'
 
-
 const routes = [
+
   {
     path: "/",
-    name: "Home",
-    component: Home,
-  },
-  {
-    path: "/cart",
-    name: "Cart",
-    component: Cart,
-  },
-  {
-    path: "/login",
-    name: "Login",
-    component: Login,
-  },
-  {
-    path: "/product",
-    name: "Product",
-    component: Product,
-  },
-  {
-    path: "/register",
-    name: "Register",
-    component: Register,
-  },
-  {
-    path: "/product/:id",
-    name: "ProductDetail",
-    component: ProductDetail,
-  },
-  {
-    path: "/checkout",
-    name: "Checkout",
-    component: Checkout,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: "/profile",
-    name: "profile",
-    component: Profile,
-    meta: { requiresAuth: true },
+    component: UserLayout, 
     children: [
+      { path: "", name: "Home", component: Home },
+      { path: "cart", name: "Cart", component: Cart },
+      { path: "login", name: "Login", component: Login },
+      { path: "product", name: "Product", component: Product },
+      { path: "register", name: "Register", component: Register },
+      { path: "product/:id", name: "ProductDetail", component: ProductDetail },
+      { path: "checkout", name: "Checkout", component: Checkout, meta: { requiresAuth: true } },
       {
-        path: '', name: 'personnal-info',
-        component: PersonInfo,
-      },
-      {
-        path: 'addresses', name: 'profile-addresses',
-        component: Addresses,
-      },
-      {
-        path: 'orders', name: 'profile-orders',
-        component: Orders
-      },
-      {
-        path: 'orders/:id', name: 'order-detail',
-        component: OrderDetail,
-      },
-      {
-        path: 'wishlist', name: 'profile-wishlist',
-        component: Wishlist,
+        path: "profile",
+        name: "profile",
+        component: Profile,
+        meta: { requiresAuth: true },
+        children: [
+          { path: '', name: 'personnal-info', component: PersonInfo },
+          { path: 'addresses', name: 'profile-addresses', component: Addresses },
+          { path: 'orders', name: 'profile-orders', component: Orders },
+          { path: 'orders/:id', name: 'order-detail', component: OrderDetail },
+          { path: 'wishlist', name: 'profile-wishlist', component: Wishlist }
+        ]
       }
     ]
-
   },
 
-  // router admin
+
   {
     path: '/admin',
     component: AdminLayout,
     children: [
       { path: '', name: 'Dashboard', component: AdminDashboard },
-      
-      // ql sach
       { path: 'books', name: 'BookManager', component: BookManager },
       { path: 'books/create', name: 'BookCreate', component: BookCreate },
       { path: 'books/:id', name: 'BookDetail', component: BookDetail },
-
-      // danh muc
       { path: 'categories', name: 'CategoryManager', component: CategoryManager },
       { path: 'categories/create', name: 'CategoryCreate', component: CategoryCreate },
       { path: 'categories/:id', name: 'CategoryDetail', component: CategoryDetail },
-
-      // auth
       { path: 'authors', name: 'AuthorManager', component: AuthorManager },
       { path: 'authors/create', name: 'AuthorCreate', component: AuthorCreate },
       { path: 'authors/:id', name: 'AuthorDetail', component: AuthorDetail },
-
-      // don hang and hoa don
       { path: 'orders', name: 'OrderManager', component: OrderManager },
       { path: 'orders/:id', name: 'OrderDetailAdmin', component: OrderDetailAdmin }, 
       { path: 'invoices', name: 'InvoiceManager', component: InvoiceManager },
       { path: 'invoices/:id', name: 'InvoiceDetail', component: InvoiceDetail },
-
-      // user
       { path: 'users', name: 'UserManager', component: UserManager },
       { path: 'users/create', name: 'UserCreate', component: UserCreate },
       { path: 'users/:id', name: 'UserDetail', component: UserDetail }
     ]
   },
-
 ];
 
 const router = createRouter({

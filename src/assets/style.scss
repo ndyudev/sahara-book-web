@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 
-:root {
+.user-portal{
 
     --font-headline: "Manrope", sans-serif;
     --font-body: "Inter", sans-serif;
@@ -32,7 +32,7 @@
 
 
     --error: #ba1a1a;
-}
+
 
 * {
     margin: 0;
@@ -40,14 +40,14 @@
     box-sizing: border-box;
 }
 
-body {
+
     font-family: var(--font-body);
     background-color: var(--surface);
     color: var(--on-surface);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     line-height: 1.5;
-}
+
 
 h1,
 h2,
@@ -1008,4 +1008,5 @@ h6 {
     font-size: 3.5rem;
     color: #FF8C00;
     margin-bottom: 20px;
+}
 }

@@ -129,12 +129,20 @@ const handleLogin = () => {
         window.dispatchEvent(new Event('strorage'));
         window.dispatchEvent(new Event('user-info-changed'));
 
-        const redirectPath = route.query.redirect || '/';
-        toast.success(`Chào mừng ${user.fullname || 'bạn'} quay trở lại!`);
+        // Phân quyền admin và user
+        if (user.role === 'ADMIN') {
+            router.push('/admin');
+            toast.success(`Chào mừng ${user.fullname} đến với trang quản trị viên`);
+        } else {
+            const redirectPath = route.query.redirect || '/';
+            toast.success(`Chào mừng ${user.fullname || 'bạn'} quay trở lại!`);
 
-        router.push(redirectPath);
+            router.push(redirectPath);
+        }
+
     } else {
         toast.error('Email hoặc mật khẩu không chính xác. Vui lòng thử lại!');
     }
+
 };
 </script>

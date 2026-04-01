@@ -1,0 +1,60 @@
+/* 1. Font luôn nằm trên đầu và ngoài lồng */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+/* 2. NHỐT TẤT CẢ VÀO ĐÂY */
+.admin-portal {
+    /* Khai báo biến màu để dùng lại cho nhanh */
+    $admin-orange: #ffb27a;
+    $admin-orange-hover: #ff9d5c;
+
+    /* Ghi đè biến CSS gốc của Bootstrap */
+    --bs-primary: #{$admin-orange};
+    --bs-primary-rgb: 255, 178, 122;
+
+    /* --- CHỮA LỖI PHÂN TRANG XANH (Ảnh 1) --- */
+    .pagination {
+        .page-item.active .page-link {
+            background-color: $admin-orange !important;
+            border-color: $admin-orange !important;
+            color: white !important;
+        }
+        .page-link {
+            color: $admin-orange;
+            &:focus { box-shadow: 0 0 0 0.25rem rgba($admin-orange, 0.25); }
+        }
+    }
+
+    /* --- CHỮA LỖI VIỀN Ô NHẬP LIỆU XANH (Ảnh 2, 3) --- */
+    .form-control, .form-select {
+        &:focus {
+            border-color: $admin-orange !important;
+            box-shadow: 0 0 0 0.25rem rgba($admin-orange, 0.25) !important;
+        }
+    }
+
+    /* --- TỐI ƯU CÁC CLASS CŨ CỦA SẾP --- [cite: 8-16] */
+    .font-sans { font-family: 'Inter', sans-serif; }
+    
+    h1, h2, h3, h4, h5, .fw-bold { 
+        font-family: 'Manrope', sans-serif; 
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        vertical-align: middle;
+    }
+
+    .bg-primary { background-color: $admin-orange !important; }
+    .text-primary { color: $admin-orange !important; }
+
+    .btn-primary {
+        background-color: $admin-orange !important;
+        border-color: $admin-orange !important;
+        color: #fff !important;
+        &:hover {
+            background-color: $admin-orange-hover !important;
+            border-color: $admin-orange-hover !important;
+        }
+    }
+}
