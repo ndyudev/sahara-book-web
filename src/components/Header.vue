@@ -88,10 +88,6 @@
                     <RouterLink to="/profile/orders" class="nb-dd-item-new" @click="isOpen = false">
                       <i class="bi bi-bag-check"></i><span>Quản lý đơn hàng</span>
                     </RouterLink>
-                    <RouterLink v-if="isAdmin" to="/admin" class="nb-dd-item-new" @click="isOpen = false">
-                      <i class="bi bi-box-arrow-right"></i>
-                      <span>Hướng đến trang quản trị viên</span>
-                    </RouterLink>
                     <div class="nb-dd-divider"></div>
                     <a href="#" class="nb-dd-item-new text-danger" @click.prevent="handleLogout">
                       <i class="bi bi-box-arrow-right"></i><span>Đăng xuất</span>

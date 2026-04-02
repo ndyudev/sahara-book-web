@@ -4,7 +4,7 @@
        style="width: 260px; min-width: 260px;">
 
     <div class="mb-4 px-2 text-center">
-      <img src="../assets/logo.png" alt="Sahara KBK Logo" class="img-fluid mb-2">
+      <img src="../assets/logo/logo.png" alt="Sahara KBK Logo" class="img-fluid mb-2">
     </div>
 
     <nav class="nav flex-column gap-1 overflow-auto custom-scrollbar flex-grow-1">
@@ -14,7 +14,7 @@
         <span class="menu-text">{{ item.name }}</span>
       </router-link>
       
-      <a href="#" @click.prevent="logout"
+      <a href="#"  @click.prevent="handleLogout"
         class="nav-link text-danger rounded d-flex align-items-center gap-2 py-2 px-3 mt-auto">
         <span class="material-symbols-outlined fs-5">logout</span>
         <span class="menu-text">Đăng xuất</span>
@@ -26,11 +26,15 @@
 
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      menu: [
+<script setup>
+import { reactive } from 'vue'
+import { useToast } from 'vue-toastification';
+import { useRouter } from 'vue-router';
+
+const toast = useToast();
+const router = useRouter();
+
+   const menu= [
         { name: 'Tổng quan', path: '/admin', icon: 'dashboard' },
         { name: 'Quản lý sách', path: '/admin/books', icon: 'menu_book' },
         { name: 'Danh mục', path: '/admin/categories', icon: 'category' },
@@ -39,16 +43,18 @@ export default {
         { name: 'Hóa đơn', path: '/admin/invoices', icon: 'receipt_long' },
         { name: 'Khách hàng', path: '/admin/users', icon: 'group' }
       ]
-    }
-  },
+ 
+ 
+const confirmData = reactive({
+  show: false
+})
 
-  methods: {
-    logout() {
-      if (confirm("Bạn muốn đăng xuất?")) {
-        this.$router.push('/login');
-      }
-    }
-  }
-
+const handleLogout = () => {
+  localStorage.removeItem('user-token')
+  localStorage.removeItem('user-info')
+  confirmData.show = false
+  toast.success("Bạn đã đăng xuất thành công!", "success")
+  router.push('/login');
 }
+
 </script>
