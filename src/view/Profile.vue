@@ -82,6 +82,8 @@ const navItems = [
     { key: 'orders', label: 'Quản lý đơn hàng', icon: 'bi bi-bag', path: '/profile/orders' },
     { key: 'addresses', label: 'Địa chỉ nhận hàng', icon: 'bi bi-geo-alt', path: '/profile/addresses' },
     { key: 'wishlist', label: 'Danh sách yêu thích', icon: 'bi bi-heart', path: '/profile/wishlist' },
+    { key: 'rewards', label: 'Thành viên & Ưu đãi', icon: 'bi bi-award', path: '/profile/rewards' },
+    { key: 'wallet', label: 'Ví voucher của tôi', icon: 'bi bi-wallet2', path: '/profile/wallet' },
 ]
 
 const loadUserData = () => {
