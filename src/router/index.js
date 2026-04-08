@@ -29,8 +29,6 @@ import BookManager from '../view/BookManager.vue'
 import BookCreate from '../view/BookCreate.vue'
 import CategoryManager from '../view/CategoryManager.vue'
 import CategoryCreate from '../view/CategoryCreate.vue'
-import AuthorManager from '../view/AuthorManager.vue'
-import AuthorCreate from '../view/AuthorCreate.vue'
 import OrderManager from '../view/OrderManager.vue'
 import InvoiceManager from '../view/InvoiceManager.vue'
 import UserManager from '../view/UserManager.vue'
@@ -38,7 +36,6 @@ import UserCreate from '../view/UserCreate.vue'
 
 
 import UserDetail from '../details/UserDetail.vue'
-import AuthorDetail from '../details/AuthorDetail.vue'
 import CategoryDetail from '../details/CategoryDetail.vue'
 import BookDetail from '../details/BookDetail.vue'
 import InvoiceDetail from '../details/InvoiceDetail.vue'
@@ -87,9 +84,6 @@ const routes = [
       { path: 'categories', name: 'CategoryManager', component: CategoryManager },
       { path: 'categories/create', name: 'CategoryCreate', component: CategoryCreate },
       { path: 'categories/:id', name: 'CategoryDetail', component: CategoryDetail },
-      { path: 'authors', name: 'AuthorManager', component: AuthorManager },
-      { path: 'authors/create', name: 'AuthorCreate', component: AuthorCreate },
-      { path: 'authors/:id', name: 'AuthorDetail', component: AuthorDetail },
       { path: 'orders', name: 'OrderManager', component: OrderManager },
       { path: 'orders/:id', name: 'OrderDetailAdmin', component: OrderDetailAdmin },
       { path: 'invoices', name: 'InvoiceManager', component: InvoiceManager },

@@ -38,7 +38,6 @@ const menu = [
   { name: 'Tổng quan', path: '/admin', icon: 'dashboard' },
   { name: 'Quản lý sách', path: '/admin/books', icon: 'menu_book' },
   { name: 'Danh mục', path: '/admin/categories', icon: 'category' },
-  { name: 'Tác giả', path: '/admin/authors', icon: 'person' },
   { name: 'Đơn hàng', path: '/admin/orders', icon: 'shopping_bag' },
   { name: 'Hóa đơn', path: '/admin/invoices', icon: 'receipt_long' },
   { name: 'Khách hàng', path: '/admin/users', icon: 'group' }

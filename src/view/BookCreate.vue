@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <router-link to="/admin/books" class="text-decoration-none text-muted d-flex align-items-center gap-1 mb-3">
@@ -25,7 +24,7 @@
               <label class="form-label fw-bold">Danh mục</label>
               <select v-model="newBook.category" class="form-select bg-light border-0 py-2">
                 <option value="">Chọn danh mục</option>
-                <option v-for="cat in categoriesList" :key="cat.id" :value="cat.name">
+                <option v-for="cat in categoriesList" :key="cat.name" :value="cat.name">
                   {{ cat.name }}
                 </option>
               </select>
@@ -77,8 +76,16 @@
 </template>
 
 <script>
+
+import { useToast } from 'vue-toastification';
+
 export default {
   name: "BookCreate",
+
+  setup() {
+    const toast = useToast();
+    return { toast };
+  },
   data() {
     return {
       categoriesList: [], 
@@ -98,9 +105,8 @@ export default {
     if (savedCats) {
       this.categoriesList = JSON.parse(savedCats);
     } else {
-
       this.categoriesList = [
-        { name: "Văn học" }, { name: "Kinh tế" }, { name: "Tâm lý học" }, { name: "Khoa học" }
+        { name: "Văn học" }, { name: "Kinh tế" }, { name: "Tâm lý học" }, { name: "Khoa học" }, { name: "Thiếu nhi" }
       ];
     }
   },
@@ -115,13 +121,13 @@ export default {
       }
     },
     saveBook() {
+
       if (!this.newBook.title || !this.newBook.price || !this.newBook.category) {
-        alert("Sếp vui lòng nhập tên sách, giá và chọn danh mục nhé!");
+        this.toast.error("Sếp vui lòng nhập tên sách, giá và chọn danh mục nhé!");
         return;
       }
 
       let list = JSON.parse(localStorage.getItem('books'));
-
 
       if (!list) {
         list = [
@@ -144,16 +150,16 @@ export default {
         title: this.newBook.title,
         author: this.newBook.author || "Khuyết danh",
         category: this.newBook.category,
-
         price: new Intl.NumberFormat('vi-VN').format(this.newBook.price) + "đ",
         stock: Number(this.newBook.stock) || 0,
-        image: this.newBook.imagePreview || "https://via.placeholder.com/150"
+        image: this.newBook.imagePreview || "https://via.placeholder.com/150",
+        isSale: false 
       };
 
       list.unshift(newBookObj);
       localStorage.setItem('books', JSON.stringify(list));
 
-      alert("Đã thêm cuốn sách: " + this.newBook.title);
+      this.toast.success("Đã thêm cuốn sách: " + this.newBook.title);
       this.$router.push('/admin/books');
     }
   }

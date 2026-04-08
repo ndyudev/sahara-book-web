@@ -17,7 +17,7 @@
                 <span class="material-symbols-outlined text-muted fs-5">search</span>
               </span>
               <input v-model="searchQuery" type="text" class="form-control bg-light border-0 ps-0"
-                placeholder="Search...">
+                placeholder="Tìm kiếm danh mục...">
             </div>
           </div>
           <div class="card-body p-0">
@@ -25,8 +25,9 @@
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light text-muted small text-uppercase">
                   <tr>
-                    <th class="ps-4 py-3">ID</th>
+                    <th class="ps-4 py-3" style="width: 100px;">ID</th>
                     <th>Tên danh mục</th>
+                    <th>Cấp bậc</th>
                     <th>Mô tả</th>
                     <th class="text-end pe-4">Thao tác</th>
                   </tr>
@@ -35,20 +36,47 @@
                   <tr v-for="cat in filteredCategories" :key="cat.id">
                     <td class="ps-4 fw-bold text-muted">#{{ cat.id }}</td>
                     <td><span class="fw-bold text-dark">{{ cat.name }}</span></td>
+                    <td>
+                      <span v-if="!cat.parentId" class="badge bg-primary bg-opacity-10 text-primary">
+                        Danh mục Gốc
+                      </span>
+                      <span v-else class="badge bg-info bg-opacity-10 text-info">
+                        Con của: {{ getParentName(cat.parentId) }}
+                      </span>
+                    </td>
                     <td class="text-muted small">{{ cat.description }}</td>
                     <td class="text-end pe-4">
-                      <router-link :to="'/admin/categories/' + cat.id" class="btn btn-sm btn-link text-primary p-1 me-2"
+                      <router-link :to="'/admin/categories/' + cat.id" class="btn btn-sm btn-light text-primary rounded-circle p-2 me-2"
                         title="Sửa">
-                        <span class="material-symbols-outlined fs-5">edit</span>
+                        <span class="material-symbols-outlined fs-5 d-block">edit</span>
                       </router-link>
-                      <button @click="deleteCategory(cat.id, cat.name)" class="btn btn-sm btn-link text-danger p-1"
-                        title="Xóa">
-                        <span class="material-symbols-outlined fs-5">delete</span>
+                      <button @click="openDeleteModal(cat)" class="btn btn-sm btn-light text-danger rounded-circle p-2"
+                        data-bs-toggle="modal" data-bs-target="#deleteCatModal" title="Xóa">
+                        <span class="material-symbols-outlined fs-5 d-block">delete</span>
                       </button>
                     </td>
                   </tr>
+                  <tr v-if="filteredCategories.length === 0">
+                    <td colspan="5" class="text-center py-5 text-muted">Không tìm thấy danh mục nào.</td>
+                  </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="deleteCatModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-body text-center p-4">
+            <span class="material-symbols-outlined text-danger mb-3" style="font-size: 4rem;">warning</span>
+            <h4 class="fw-bold">Xác nhận xóa?</h4>
+            <p class="text-muted">Bạn có chắc muốn xóa danh mục </p>
+            <div class="d-flex gap-2 justify-content-center mt-4">
+              <button type="button" class="btn btn-light px-4 fw-bold" data-bs-dismiss="modal" id="closeDelCatBtn">Hủy</button>
+              <button type="button" class="btn btn-danger px-4 fw-bold" @click="confirmDelete">Xóa</button>
             </div>
           </div>
         </div>
@@ -58,34 +86,23 @@
 </template>
 
 <script>
+import { useToast } from 'vue-toastification';
+
 export default {
   name: "CategoryManager",
+  setup() {
+    const toast = useToast();
+    return { toast };
+  },
   data() {
     return {
       searchQuery: "",
-      categories: []
+      categories: [],
+      deleteTarget: { id: null, name: '' }
     };
   },
   mounted() {
-
-    const savedCats = localStorage.getItem('categories');
-
-    if (savedCats) {
-
-      this.categories = JSON.parse(savedCats);
-    } else {
-
-      const defaultData = [
-        { id: 1, name: "Văn học", description: "Các tác phẩm văn học trong và ngoài nước" },
-        { id: 2, name: "Kinh tế", description: "Sách về quản trị, đầu tư, tài chính" },
-        { id: 3, name: "Tâm lý học", description: "Sách phát triển bản thân, tâm lý" },
-        { id: 4, name: "Khoa học", description: "Khám phá vũ trụ và tự nhiên" },
-        { id: 5, name: "Thiếu nhi", description: "Truyện tranh và sách cho bé" }
-      ];
-      this.categories = defaultData;
-
-      localStorage.setItem('categories', JSON.stringify(defaultData));
-    }
+    this.loadCategories();
   },
   computed: {
     filteredCategories() {
@@ -93,21 +110,49 @@ export default {
       return this.categories.filter(cat => {
         return (
           cat.name.toLowerCase().includes(query) ||
-          cat.description.toLowerCase().includes(query)
+          (cat.description && cat.description.toLowerCase().includes(query))
         );
       });
     }
   },
   methods: {
-    deleteCategory(id, name) {
-      if (confirm(`Bạn có muốn xóa dnah mục này không?`)) {
-        let list = JSON.parse(localStorage.getItem('categories')) || [];
-        const newList = list.filter(item => String(item.id) !== String(id));
-        localStorage.setItem('categories', JSON.stringify(newList));
+    loadCategories() {
+      const savedCats = localStorage.getItem('categories');
+      if (savedCats) {
+        this.categories = JSON.parse(savedCats);
+      } else {
 
-        this.categories = newList;
-        alert("Đã xóa thành công!");
+        const defaultData = [
+          { id: 1, name: "Văn học", description: "Các tác phẩm văn học", parentId: null },
+          { id: 2, name: "Kinh tế", description: "Sách quản trị, đầu tư", parentId: null },
+          { id: 3, name: "Tiểu thuyết", description: "Các loại tiểu thuyết", parentId: 1 }, 
+          { id: 4, name: "Marketing", description: "Sách Marketing chuyên sâu", parentId: 2 } 
+        ];
+        this.categories = defaultData;
+        localStorage.setItem('categories', JSON.stringify(defaultData));
       }
+    },
+
+    getParentName(parentId) {
+      const parent = this.categories.find(c => c.id === parentId);
+      return parent ? parent.name : 'N/A';
+    },
+    openDeleteModal(cat) {
+      this.deleteTarget = { id: cat.id, name: cat.name };
+    },
+    confirmDelete() {
+
+      const hasChild = this.categories.some(c => c.parentId === this.deleteTarget.id);
+      if (hasChild) {
+        this.toast.error("Không thể xóa! Danh mục này đang có các danh mục con.");
+        document.getElementById('closeDelCatBtn').click();
+        return;
+      }
+
+      this.categories = this.categories.filter(item => item.id !== this.deleteTarget.id);
+      localStorage.setItem('categories', JSON.stringify(this.categories));
+      this.toast.success("Đã xóa danh mục thành công!");
+      document.getElementById('closeDelCatBtn').click();
     }
   }
 };
