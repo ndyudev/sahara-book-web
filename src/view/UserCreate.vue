@@ -12,23 +12,23 @@
                     <h5 class="fw-bold mb-3">Thông tin cá nhân</h5>
                     <div class="row g-3">
                         <div class="col-md-12">
-                            <label class="form-label fw-bold small text-muted">Họ và tên khách hàng</label>
-                            <input v-model="newUser.name" type="text" class="form-control bg-light border-0 py-2">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Họ và tên</label>
+                            <input v-model="newUser.name" type="text" class="form-control bg-light border-0 py-2" placeholder="Nhập họ tên...">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Email</label>
-                            <input v-model="newUser.email" type="email" class="form-control bg-light border-0 py-2">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Email</label>
+                            <input v-model="newUser.email" type="email" class="form-control bg-light border-0 py-2" placeholder="example@gmail.com">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Số điện thoại</label>
-                            <input v-model="newUser.phone" type="text" class="form-control bg-light border-0 py-2">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Số điện thoại</label>
+                            <input v-model="newUser.phone" type="text" class="form-control bg-light border-0 py-2" placeholder="090...">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Ngày sinh</label>
+                            <label class="form-label fw-bold small text-muted text-uppercase">Ngày sinh</label>
                             <input v-model="newUser.birthday" type="date" class="form-control bg-light border-0 py-2">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Giới tính</label>
+                            <label class="form-label fw-bold small text-muted text-uppercase">Giới tính</label>
                             <select v-model="newUser.gender" class="form-select bg-light border-0 py-2">
                                 <option disabled value="">Chọn giới tính</option>
                                 <option value="Nam">Nam</option>
@@ -37,7 +37,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Trạng thái</label>
+                            <label class="form-label fw-bold small text-muted text-uppercase">Trạng thái</label>
                             <select v-model="newUser.status" class="form-select bg-light border-0 py-2">
                                 <option value="Hoạt động">Hoạt động</option>
                                 <option value="Bị khóa">Bị khóa (Tạm dừng)</option>
@@ -47,12 +47,12 @@
                 </div>
 
                 <div class="card border-0 rounded-4 shadow-sm p-4">
-                    <h5 class="fw-bold mb-3">Địa chỉ giao hàng</h5>
+                    <h5 class="fw-bold mb-3 text-uppercase">Địa chỉ giao hàng</h5>
                     <div class="row g-3">
                         <div class="col-md-12">
-                            <label class="form-label fw-bold small text-muted">Địa chỉ chi tiết</label>
+                            <label class="form-label fw-bold small text-muted text-uppercase">Địa chỉ chi tiết</label>
                             <textarea v-model="newUser.address" class="form-control bg-light border-0"
-                                rows="3"></textarea>
+                                rows="3" placeholder="Số nhà, tên đường..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
 
             <div class="col-md-4">
                 <div class="card border-0 rounded-4 shadow-sm p-4 text-center mb-4">
-                    <label class="form-label fw-bold d-block text-start small text-muted">Ảnh đại diện</label>
+                    <label class="form-label fw-bold d-block text-start small text-muted text-uppercase">Ảnh đại diện</label>
                     <div @click="triggerUpload"
                         class="d-flex flex-column align-items-center justify-content-center py-4 border border-2 border-dashed rounded-4 bg-light mt-2"
                         style="cursor: pointer; min-height: 180px;">
@@ -77,8 +77,8 @@
 
                 <div class="d-grid gap-2">
                     <button @click="saveUser"
-                        class="btn btn-primary text-white fw-bold py-2 rounded-3 shadow-sm">Lưu</button>
-                    <router-link to="/admin/users" class="btn btn-light py-2 rounded-3 fw-bold">Hủy bỏ</router-link>
+                        class="btn btn-primary text-white fw-bold py-2 rounded-3 shadow-sm">Lưu khách hàng</button>
+                    <router-link to="/admin/users" class="btn btn-light py-2 rounded-3 fw-bold text-decoration-none text-center">Hủy</router-link>
                 </div>
             </div>
         </div>
@@ -86,8 +86,14 @@
 </template>
 
 <script>
+import { useToast } from 'vue-toastification';
+
 export default {
     name: "UserCreate",
+    setup() {
+        const toast = useToast();
+        return { toast };
+    },
     data() {
         return {
             newUser: {
@@ -114,35 +120,33 @@ export default {
         },
         saveUser() {
             if (!this.newUser.name || !this.newUser.phone) {
-                alert("Vui lòng nhập tên và số điện thoại!");
+                this.toast.error("Vui lòng nhập tên và số điện thoại khách hàng!");
                 return;
             }
 
-            let list = JSON.parse(localStorage.getItem('users'));
-
+            let list = JSON.parse(localStorage.getItem('users')) || [];
 
             const newUserObj = {
-                id: "U" + Math.floor(Math.random() * 1000),
+                id: "U" + Math.floor(Math.random() * 10000), 
                 name: this.newUser.name,
                 email: this.newUser.email || "Chưa có",
                 phone: this.newUser.phone,
-
                 birthday: this.newUser.birthday,
                 gender: this.newUser.gender,
                 address: this.newUser.address,
-
-
                 joinDate: new Date().toLocaleDateString('vi-VN'),
                 status: this.newUser.status,
-                avatar: this.newUser.avatarPreview || "https://via.placeholder.com/150"
+
+                avatar: this.newUser.avatarPreview || "/src/assets/logo/logo.png"
             };
 
             list.unshift(newUserObj);
             localStorage.setItem('users', JSON.stringify(list));
 
-            alert("Đã lưu khách hàng: " + this.newUser.name);
+            this.toast.success(`Đã thêm khách hàng "${this.newUser.name}" thành công!`);
             this.$router.push('/admin/users');
         }
     }
 }
 </script>
+

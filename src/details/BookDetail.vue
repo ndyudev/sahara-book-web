@@ -75,8 +75,16 @@
 </template>
 
 <script>
+
+import { useToast } from 'vue-toastification';
+
 export default {
   name: "BookDetail",
+
+  setup() {
+    const toast = useToast();
+    return { toast };
+  },
   data() {
     return {
       categoriesList: [],
@@ -85,10 +93,10 @@ export default {
     }
   },
   mounted() {
-
     const savedCats = localStorage.getItem('categories');
-    this.categoriesList = savedCats ? JSON.parse(savedCats) : [];
-
+    this.categoriesList = savedCats ? JSON.parse(savedCats) : [
+        { name: "Văn học" }, { name: "Kinh tế" }, { name: "Tâm lý học" }, { name: "Khoa học" }, { name: "Thiếu nhi" }
+    ];
 
     const bookId = this.$route.params.id;
     this.fetchBook(bookId);
@@ -102,18 +110,22 @@ export default {
 
         this.displayPrice = parseInt(this.book.price.replace(/\D/g, '')) || 0;
       } else {
-        alert("Không tìm thấy sách này!");
+     
+        this.toast.error("Không tìm thấy sách này!");
         this.$router.push('/admin/books');
       }
     },
     triggerUpload() { this.$refs.fileInput.click(); },
     handleFileUpload(event) {
       const file = event.target.files[0];
-      if (file) { this.book.image = URL.createObjectURL(file); }
+      if (file) { 
+          this.book.image = URL.createObjectURL(file); 
+      }
     },
     updateBook() {
+
       if (!this.book.title || !this.displayPrice) {
-        alert("Hãy nhập đầy đủ thông tin!");
+        this.toast.error("Vui lòng nhập đầy đủ tên sách và giá bán!");
         return;
       }
       
@@ -125,18 +137,23 @@ export default {
         this.book.price = new Intl.NumberFormat('vi-VN').format(this.displayPrice) + "đ";
         list[index] = this.book;
         localStorage.setItem('books', JSON.stringify(list));
-        alert("Đã cập nhật sách thành công!");
+        
+        this.toast.success("Đã cập nhật thông tin sách thành công!");
         this.$router.push('/admin/books');
       }
     },
     deleteBook() {
+
       if (confirm(`Bạn có chắc muốn xóa cuốn sách này không?`)) {
         let list = JSON.parse(localStorage.getItem('books')) || [];
         list = list.filter(b => String(b.id) !== String(this.book.id));
         localStorage.setItem('books', JSON.stringify(list));
+
+        this.toast.success("Đã xóa cuốn sách khỏi hệ thống!");
         this.$router.push('/admin/books');
       }
     }
   }
 }
 </script>
+
