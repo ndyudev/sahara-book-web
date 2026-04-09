@@ -6,44 +6,44 @@
           <section>
             <div class="d-flex align-items-end justify-content-between mb-4 pb-2 border-bottom">
               <h1 class="h2 fw-bold mb-0">Giỏ hàng của bạn</h1>
-              <span class="text-muted fw-medium">{{ cartItems.length }} sản phẩm</span>
+              <span class="text-muted fw-medium">{{ cartBooks.length }} sản phẩm</span>
             </div>
 
             <div class="cart-list-container position-relative">
               <TransitionGroup name="list">
-                <div v-for="item in cartItems" :key="item.id"
+                <div v-for="b in cartBooks" :key="b.bookId"
                   class="cart-item-card p-3 p-md-4 rounded-4 d-flex gap-3 gap-md-4 align-items-center bg-white border mb-3 shadow-sm">
 
-                  <router-link :to="`/product/${item.id}`" class="cart-item-img rounded-3 overflow-hidden border">
-                    <img :src="item.image" :alt="item.title" class="w-100 h-100 object-fit-cover hover-zoom">
+                  <router-link :to="`/product/${b.bookId}`" class="cart-item-img rounded-3 overflow-hidden border">
+                    <img :src="b.image" :alt="b.title" class="w-100 h-100 object-fit-cover hover-zoom">
                   </router-link>
 
                   <div class="flex-grow-1 d-flex flex-column gap-2">
                     <div>
                       <span class="badge bg-soft-brown text-brown extra-small fw-bold text-uppercase mb-1">
-                        {{ item.category }}
+                        {{ b.categoryId }}
                       </span>
-                      <router-link :to="`/product/${item.id}`" class="text-decoration-none text-dark">
-                        <h5 class="fw-bold mb-1 line-clamp-1">{{ item.title }}</h5>
+                      <router-link :to="`/product/${b.bookId}`" class="text-decoration-none text-dark">
+                        <h5 class="fw-bold mb-1 line-clamp-1">{{ b.title }}</h5>
                       </router-link>
-                      <p class="text-muted small mb-0">{{ item.author }} <span class="mx-1">•</span> {{ item.format }}
+                      <p class="text-muted small mb-0">{{ b.author }} <span class="mx-1">•</span> {{ b.format }}
                       </p>
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between mt-2">
                       <div class="qty-group d-flex align-items-center bg-light rounded-pill border">
-                        <button @click="updateQty(item.id, -1)" class="btn btn-sm px-2 border-0">
+                        <button @click="updateQty(b.bookId, -1)" class="btn btn-sm px-2 border-0">
                           <i class="bi bi-dash-lg"></i>
                         </button>
                         <span class="px-2 small fw-bold text-center" style="min-width: 30px;">
-                          {{ item.quantity }}
+                          {{ b.quantity }}
                         </span>
-                        <button @click="updateQty(item.id, 1)" class="btn btn-sm px-2 border-0">
+                        <button @click="updateQty(b.bookId, 1)" class="btn btn-sm px-2 border-0">
                           <i class="bi bi-plus-lg"></i>
                         </button>
                       </div>
 
-                      <button @click="removeItem(item.id)"
+                      <button @click="removeItem(b.bookId)"
                         class="btn btn-link text-danger text-decoration-none small fw-bold p-0 opacity-75 hover-opacity-100">
                         <i class="bi bi-trash3 me-1"></i> Xóa
                       </button>
@@ -52,13 +52,13 @@
 
                   <div class="text-end d-flex flex-column justify-content-center border-start ps-3 ps-md-4"
                     style="min-width: 100px;">
-                    <div class="fs-5 fw-bold text-dark">{{ formatPrice(item.price * item.quantity) }}</div>
-                    <div class="extra-small text-success fw-bold">{{ item.status || 'Còn hàng' }}</div>
+                    <div class="fs-5 fw-bold text-dark">{{ formatPrice(b.price * b.quantity) }}</div>
+                    <div class="extra-small text-success fw-bold">{{ b.status || 'Còn hàng' }}</div>
                   </div>
                 </div>
               </TransitionGroup>
 
-              <div v-if="cartItems.length === 0"
+              <div v-if="cartBooks.length === 0"
                 class="text-center py-5 rounded-4 border-2 border-dashed bg-white shadow-sm">
                 <div class="mb-3">
                   <i class="bi bi-cart-x display-1 text-muted opacity-25"></i>
@@ -79,7 +79,7 @@
 
             <div class="d-flex flex-column gap-3 mb-4">
               <div class="d-flex justify-content-between text-muted">
-                <span>Tạm tính ({{ cartItems.length }} SP)</span>
+                <span>Tạm tính ({{ cartBooks.length }} SP)</span>
                 <span class="fw-bold text-dark">{{ formatPrice(subtotal) }}</span>
               </div>
               <div class="d-flex justify-content-between text-muted">
@@ -111,7 +111,7 @@
               </div>
             </div>
 
-            <router-link to="/checkout" :class="{ 'disabled': cartItems.length === 0 }"
+            <router-link to="/checkout" :class="{ 'disabled': cartBooks.length === 0 }"
               class="btn btn-checkout w-100 py-3 rounded-pill fw-bold text-white shadow-orange d-flex align-items-center justify-content-center gap-2">
               Tiến hành thanh toán
               <i class="bi bi-arrow-right fs-5"></i>
@@ -137,46 +137,50 @@ import { ref, computed, onMounted } from 'vue'
 import { useToast } from "vue-toastification"
 
 const toast = useToast()
-const cartItems = ref([])
+const cartBooks = ref([])
 const shipping = 30000
 
 const loadCart = () => {
   const data = localStorage.getItem('cart')
-  cartItems.value = data ? JSON.parse(data) : []
+  cartBooks.value = data ? JSON.parse(data) : []
 }
 
 const saveCart = () => {
-  localStorage.setItem('cart', JSON.stringify(cartItems.value))
-  
+  localStorage.setItem('cart', JSON.stringify(cartBooks.value))
+
   window.dispatchEvent(new Event('storage'))
 }
 
 const subtotal = computed(() =>
-  cartItems.value.reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0)
+  cartBooks.value.reduce((acc, b) => acc + (Number(b.price) * Number(b.quantity)), 0)
 )
 
-const total = computed(() => subtotal.value + (cartItems.value.length > 0 ? shipping : 0))
+const total = computed(() => subtotal.value + (cartBooks.value.length > 0 ? shipping : 0))
 
-const updateQty = (id, delta) => {
-  const item = cartItems.value.find(i => i.id === id)
-  if (!item) return
+const updateQty = (bookId, delta) => {
+  
+  const book = cartBooks.value.find(b => b.bookId === bookId)
 
-  const newQty = item.quantity + delta
-  if (newQty >= 1 && newQty <= 20) { 
-    saveCart()
-  } else if (newQty < 1) {
-    removeItem(id)
-  } else {
-    toast.warning("Số lượng tối đa là 20 cuốn")
+  if (book) {
+    const newQty = book.quantity + delta
+
+    if (newQty >= 1 && newQty <= 20) {
+      book.quantity = newQty 
+      saveCart() 
+    } else if (newQty < 1) {
+      removeItem(bookId) 
+    } else {
+      toast.warning("Số lượng tối đa là 20 cuốn")
+    }
   }
 }
 
-const removeItem = (id) => {
-  const index = cartItems.value.findIndex(i => i.id === id)
+const removeItem = (bookId) => {
+  const index = cartBooks.value.findIndex(b => b.bookId === bookId)
   if (index === -1) return
 
-  const itemBackup = cartItems.value[index]
-  cartItems.value.splice(index, 1)
+  const itemBackup = cartBooks.value[index]
+  cartBooks.value.splice(index, 1)
   saveCart()
 
   toast.error(`Đã xóa "${itemBackup.title}"`, {
@@ -184,8 +188,8 @@ const removeItem = (id) => {
     icon: "bi bi-trash3",
     closeButton: "button",
     onClick: () => {
-    
-      cartItems.value.splice(index, 0, itemBackup)
+
+      cartBooks.value.splice(index, 0, itemBackup)
       saveCart()
       toast.success("Đã khôi phục sản phẩm!")
     }
@@ -202,7 +206,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
 .text-brown {
   color: #ff8c00;
 }

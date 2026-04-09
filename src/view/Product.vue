@@ -1,6 +1,6 @@
 <template>
   <div class="product-layout">
-    <FilterSidebar :filters="filters" :categoryOptions="categoryOptions" />
+    <FilterSidebar :filters="filters" :categoryOptions="categoryOptions" @apply="fetchData(false)" />
 
     <main class="product-main">
       <div class="product-header">
@@ -16,27 +16,34 @@
         </div>
       </div>
 
-      <ProductGrid :books="books" />
+      <ProductGrid v-if="books && books.length > 0" :books="books" />
+      <div v-else-if="books && books.length === 0" class="text-center py-5">
+        Đang tải sản phẩm hoặc không tìm thấy kết quả...
+      </div>
 
-      <ProductPg :pages="pages" :currentPage="currentPage" @changePage="currentPage = $event" />
+      <ProductPg v-if="pagesArray && pagesArray.length > 0" :pages="pagesArray" :currentPage="currentPage"
+        @changePage="currentPage = $event" />
     </main>
 
-    <SgSidebar :books="suggestedBooks" />
+    <SgSidebar v-if="suggestedBooks.length > 0" :books="suggestedBooks" />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import allProducts from '../data/products.json'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
+import { useRoute } from 'vue-router' // 1. Thêm useRoute để đọc URL
+import { useToast } from 'vue-toastification';
+import api from '../api/api.js'
 import FilterSidebar from '../components/product/FilterSidebar.vue'
 import ProductGrid from '../components/product/ProductGrid.vue'
 import ProductPg from '../components/product/ProductPg.vue'
 import SgSidebar from '../components/product/SgSidebar.vue'
 
-const books = ref(allProducts)
-
-const suggestedBooks = ref(allProducts.slice(0, 3))
-
+const route = useRoute() // 2. Khai báo route
+const toast = useToast();
+const books = ref([])
+const suggestedBooks = ref([])
+const categoryOptions = ref([])
 
 const filters = reactive({
   search: '',
@@ -44,24 +51,95 @@ const filters = reactive({
   maxPrice: 1000000,
 })
 
-const categoryOptions = [
-  { label: 'Văn học', value: 'van-hoc' },
-  { label: 'Kinh tế', value: 'kinh-te' },
-  { label: 'Tâm lý', value: 'tam-ly' },
-  { label: 'Ngoại ngữ', value: 'ngoai-ngu' },
-]
+const activeSort = ref('newest')
+const currentPage = ref(1)
+const totalPages = ref(0);
+
+const pagesArray = computed(() => {
+  const total = totalPages.value || 0;
+  return total > 0 ? Array.from({ length: total }, (_, i) => i + 1) : [];
+});
+
+const fetchData = async (isInitiaLoad = false) => {
+  try {
+    if (isInitiaLoad && route.query.categoryId) {
+      const catIdFromUrl = parseInt(route.query.categoryId);
+      if (!filters.categories.includes(catIdFromUrl)) {
+        filters.categories = [catIdFromUrl];
+      }
+    }
+
+    const [bookRes, catRes, suggestRes] = isInitiaLoad
+      ? await Promise.all([
+        api.get("/api/v1/books"),
+        api.get("/api/v1/categories"),
+        api.get("/api/v1/books", { params: { size: 3 } })
+      ])
+      : [await api.get("/api/v1/books"), null, null];
+
+    // Lấy toàn bộ mảng sách từ kết quả trả về
+    let allBooks = bookRes.data.result.content || bookRes.data.result || [];
+
+    let filtered = [...allBooks];
+
+    // Lọc theo Tên sách
+    if (filters.search) {
+      filtered = filtered.filter(b =>
+        b.title.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    // Lọc theo Danh mục
+    if (filters.categories.length > 0) {
+      filtered = filtered.filter(b =>
+        filters.categories.includes(b.categoryId || b.category?.bookId || b.category?.categoryId)
+      );
+    }
+    filtered = filtered.filter(b => (b.price || b.salePrice) <= filters.maxPrice);
+
+  
+    books.value = filtered;
+
+   
+    if (isInitiaLoad) {
+      categoryOptions.value = catRes.data.result.map(cat => ({
+        label: cat.categoryName,
+        value: cat.categoryId
+      }));
+      suggestedBooks.value = suggestRes.data.result.content || suggestRes.data.result;
+    }
+
+    // Tính toán lại số trang dựa trên mảng đã lọc
+    totalPages.value = Math.ceil(filtered.length / 12);
+
+  } catch (error) {
+    books.value = [];
+    toast.error("Lỗi tải dữ liệu");
+    console.error(error);
+  }
+}
+
+watch(() => route.query.categoryId, (newId) => {
+  if (newId) {
+    filters.categories = [parseInt(newId)];
+    fetchData();
+  }
+});
+
+watch([currentPage, activeSort], () => {
+  fetchData();
+});
+
+onMounted(() => {
+  fetchData(true);
+})
 
 const sortOptions = [
   { label: 'Mới nhất', value: 'newest' },
   { label: 'Bán chạy', value: 'bestseller' },
   { label: 'Giá thấp - cao', value: 'price-asc' },
 ]
-
-const activeSort = ref('newest')
-const currentPage = ref(1)
-const pages = [1, 2, 3]
 </script>
-
 <style scoped>
 .product-layout {
   display: grid;

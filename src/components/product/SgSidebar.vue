@@ -5,9 +5,10 @@
             <span>Gợi ý cho bạn</span>
         </div>
         <div class="suggest-list">
-            <div v-for="book in books" :key="book.id" class="suggest-item">
+            <div v-for="book in books" :key="book.id" class="suggest-item" @click="$router.push(`/product/${book.id}`)">
                 <div class="suggest-img-wrap">
-                    <img :src="book.image" :alt="book.title" class="suggest-img" referrerpolicy="no-referrer" />
+                    <img :src="book.imageUrl || book.image || 'https://via.placeholder.com/150'" :alt="book.title"
+                        class="suggest-img" referrerpolicy="no-referrer" />
                 </div>
                 <div>
                     <p class="suggest-title">{{ book.title }}</p>

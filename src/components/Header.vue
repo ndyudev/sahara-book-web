@@ -134,6 +134,7 @@ import logo from '../assets/logo/logo.png'
 import { ref, onMounted, onUnmounted, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
+import api from '../api/api.js';
 
 const router = useRouter();
 const toast = useToast();
@@ -143,6 +144,31 @@ const dropdownRef = ref(null);
 const categoryRef = ref(null);
 const user = ref(null);
 const cartCount = ref(0);
+const categories = ref([]);
+
+
+const fetchData = async () => {
+  try {
+    const res = await api.get("/api/v1/categories");
+    const dataFromDB = res.data.result;
+
+    const chunkSize = 4;
+    const groups = [];
+    for (let i = 0; i < dataFromDB.length; i += chunkSize) {
+      groups.push({
+        title: 'Tất cả danh mục',
+        items: dataFromDB.slice(i, i + chunkSize).map(cat => ({
+          label: cat.categoryName,
+          id: cat.categoryId,
+          icon: 'bi bi-book'
+        }))
+      });
+    }
+    categories.value = groups;
+  } catch (error) {
+    toast.error("Lỗi không hiện danh mục:", error)
+  }
+}
 
 const isAdmin = computed(() => {
   return user.value && user.value.role === 'ADMIN'
@@ -183,44 +209,6 @@ const updateCartCount = () => {
     cartCount.value = 0
   }
 }
-const categories = [
-  {
-    title: 'Văn học',
-    items: [
-      { label: 'Tiểu thuyết', icon: 'bi bi-book' },
-      { label: 'Truyện ngắn', icon: 'bi bi-journal-text' },
-      { label: 'Thơ ca', icon: 'bi bi-feather' },
-      { label: 'Hồi ký', icon: 'bi bi-person-lines-fill' },
-    ]
-  },
-  {
-    title: 'Kinh tế',
-    items: [
-      { label: 'Kinh doanh', icon: 'bi bi-briefcase' },
-      { label: 'Tài chính', icon: 'bi bi-currency-dollar' },
-      { label: 'Đầu tư', icon: 'bi bi-graph-up-arrow' },
-      { label: 'Khởi nghiệp', icon: 'bi bi-rocket' },
-    ]
-  },
-  {
-    title: 'Tâm lý',
-    items: [
-      { label: 'Tâm lý học', icon: 'bi bi-brain' },
-      { label: 'Kỹ năng sống', icon: 'bi bi-person-check' },
-      { label: 'Thiền định', icon: 'bi bi-peace' },
-      { label: 'Hạnh phúc', icon: 'bi bi-emoji-smile' },
-    ]
-  },
-  {
-    title: 'Ngoại ngữ',
-    items: [
-      { label: 'Tiếng Anh', icon: 'bi bi-translate' },
-      { label: 'Tiếng Nhật', icon: 'bi bi-translate' },
-      { label: 'Tiếng Trung', icon: 'bi bi-translate' },
-      { label: 'Tiếng Hàn', icon: 'bi bi-translate' },
-    ]
-  },
-]
 
 const handleClickOutside = (e) => {
   if (dropdownRef.value && !dropdownRef.value.contains(e.target)) isOpen.value = false
@@ -231,10 +219,13 @@ onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   checkUser()
   updateCartCount()
+  fetchData();
+
   window.addEventListener('user-info-changed', checkUser)
   window.addEventListener('storage', () => {
     checkUser()
     updateCartCount()
+    fetchData();
   })
 })
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="pd-page">
+  <div class="pd-page" v-if="book">
     <div class="pd-inner">
 
       <div class="pd-cover-wrap">
@@ -7,31 +7,31 @@
       </div>
 
       <div class="pd-detail">
-
-        <span class="pd-badge">{{ book.badge }}</span>
+        <span class="pd-badge">{{ book.status }}</span>
 
         <h1 class="pd-title">{{ book.title }}</h1>
-        <p class="pd-author">by {{ book.author }}</p>
+        <p class="pd-author">Tác giả: {{ book.author }}</p>
 
         <div class="pd-rating">
           <div class="pd-stars">
-            <i v-for="n in 5" :key="n" class="bi"
-              :class="n <= Math.round(book.rating) ? 'bi-star-fill' : 'bi-star'"></i>
+            <i v-for="n in 5" :key="n" class="bi bi-star-fill"></i>
           </div>
-          <span class="pd-reviews">({{ book.reviewCount.toLocaleString('vi-VN') }} đánh giá)</span>
-        </div>
-        <div class="pd-price-row">
-          <span class="pd-price-sale">{{ formatPrice(book.salePrice) }}</span>
-          <span class="pd-price-original">{{ formatPrice(book.originalPrice) }}</span>
-          <span class="pd-discount-badge">{{ book.discountPercent }}% OFF</span>
+          <span class="pd-reviews">(Sản phẩm chính hãng Sahara)</span>
         </div>
 
+        <div class="pd-price-row">
+          <span class="pd-price-sale">{{ formatPrice(book.price) }}</span>
+          <span v-if="book.stockQuantity > 0" class="pd-badge" style="background: #e7f6e7; color: #28a745;">
+            Còn {{ book.stockQuantity }} cuốn
+          </span>
+        </div>
 
         <div class="pd-desc-section">
-          <p class="pd-desc-label">Mô tả</p>
-          <p class="pd-desc-text">{{ book.description }}</p>
+          <p class="pd-desc-label">Mô tả sản phẩm</p>
+          <p class="pd-desc-text">
+            {{ book.description || 'Hiện chưa có mô tả chi tiết cho cuốn sách này.' }}
+          </p>
         </div>
-
 
         <div class="pd-meta-grid">
           <div class="pd-meta-item" v-for="meta in bookMeta" :key="meta.label">
@@ -41,95 +41,89 @@
         </div>
 
         <div class="pd-actions">
-          <button class="pd-btn-cart" @click="addToCart()">
-            <i class="bi bi-bag-plus"></i>
-            Thêm vào giỏ
+          <button class="pd-btn-cart" @click="addToCart" :disabled="book.stockQuantity === 0">
+            <i class="bi bi-bag-plus"></i> Thêm vào giỏ
           </button>
-          <button class="pd-btn-buy" @click="buyNow()">Mua ngay</button>
+          <button class="pd-btn-buy" @click="buyNow" :disabled="book.stockQuantity === 0">Mua ngay</button>
         </div>
-
       </div>
     </div>
+  </div>
+
+  <div v-else class="text-center py-5">
+    Đang tải thông tin sách...
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
-import books from '../data/products.json'
+import api from '../api/api.js';
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-const book = books.find(b => b.id === Number(route.params.id))
-if (!book) router.push('/')
+const book = ref(null) 
+
+// Hàm lấy chi tiết sách từ API
+const fetchBookDetail = async () => {
+  try {
+    const res = await api.get(`/api/v1/books/${route.params.id}`)
+    book.value = res.data.result
+  } catch (error) {
+    toast.error("Không tìm thấy sách này!")
+    router.push('/product')
+  }
+}
+
+onMounted(() => {
+  fetchBookDetail()
+})
 
 const addToCart = () => {
+  if (!book.value) return
+
   const cartData = localStorage.getItem('cart')
   let cart = cartData ? JSON.parse(cartData) : []
 
-  const index = cart.findIndex(item => item.id === book.id)
+  const index = cart.findIndex(item => item.bookId === book.value.bookId)
 
   if (index !== -1) {
     cart[index].quantity += 1
   } else {
-
-    const newProduct = {
-      id: book.id,
-      title: book.title,
-      price: book.salePrice,
-      image: book.imageUrl,
+    cart.push({
+      bookId: book.value.bookId,
+      title: book.value.title,
+      price: book.value.price,
+      image: book.value.imageUrl,
       quantity: 1,
-      author: book.author,
-      category: book.category
-    }
-    cart.push(newProduct)
+      author: book.value.author
+    })
   }
 
   localStorage.setItem('cart', JSON.stringify(cart))
-
   window.dispatchEvent(new Event('storage'))
-
-
-  toast.success(`Đã thêm "${book.title}" vào giỏ hàng!`)
-
+  toast.success(`Đã thêm vào giỏ hàng!`)
 }
 
+// Hàm Mua ngay
 const buyNow = () => {
-  const cartData = localStorage.getItem('cart')
-  let cart = cartData ? JSON.parse(cartData) : []
-
-  const index = cart.findIndex(item => item.id === book.id)
-
-  if (index !== -1) {
-    cart[index].quantity += 1
-  } else {
-
-    const newProduct = {
-      id: book.id,
-      title: book.title,
-      price: book.salePrice,
-      image: book.imageUrl,
-      quantity: 1,
-      author: book.author,
-      category: book.category
-    }
-    cart.push(newProduct)
-  }
-
-  localStorage.setItem('cart', JSON.stringify(cart))
-
-  window.dispatchEvent(new Event('storage'))
+  addToCart()
   router.push('/checkout')
 }
-const bookMeta = computed(() => [
-  { label: 'ISBN-13', value: book?.isbn },
-  { label: 'NXB', value: book?.publisher },
-  { label: 'Số trang', value: book?.pages + ' trang' },
-  { label: 'Định dạng', value: book?.format },
-])
+
+// Meta data động từ API
+const bookMeta = computed(() => {
+  if (!book.value) return []
+  return [
+    { label: 'Mã sách', value: '#' + book.value.bookId },
+    { label: 'Danh mục', value: book.value.category?.categoryName || 'Chưa phân loại' },
+    { label: 'Tác giả', value: book.value.author || 'Ẩn danh' },
+    { label: 'Tình trạng', value: book.value.stockQuantity > 0 ? 'Còn hàng' : 'Hết hàng' },
+  ]
+})
 
 const formatPrice = (price) => {
   return Number(price || 0).toLocaleString('vi-VN') + 'đ'

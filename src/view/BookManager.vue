@@ -51,7 +51,8 @@
                                 <td>
                                     <div class="fw-bold text-dark">
                                         {{ book.title }}
-                                        <span v-if="book.isSale" class="badge bg-danger ms-1" style="font-size: 0.65rem;">SALE</span>
+                                        <span v-if="book.isSale" class="badge bg-danger ms-1"
+                                            style="font-size: 0.65rem;">SALE</span>
                                     </div>
                                     <small class="text-muted">{{ book.category }}</small>
                                 </td>
@@ -70,8 +71,9 @@
                                     </span>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <button @click="openSaleModal(book)" class="btn btn-sm btn-light text-warning rounded-circle p-2 me-2" 
-                                            data-bs-toggle="modal" data-bs-target="#saleModal" title="Cài đặt Giảm giá">
+                                    <button @click="openSaleModal(book)"
+                                        class="btn btn-sm btn-light text-warning rounded-circle p-2 me-2"
+                                        data-bs-toggle="modal" data-bs-target="#saleModal" title="Cài đặt Giảm giá">
                                         <span class="material-symbols-outlined fs-6 d-block">campaign</span>
                                     </button>
 
@@ -81,7 +83,7 @@
                                     </router-link>
 
                                     <button @click="openDeleteModal(book)"
-                                        class="btn btn-sm btn-light text-danger rounded-circle p-2" 
+                                        class="btn btn-sm btn-light text-danger rounded-circle p-2"
                                         data-bs-toggle="modal" data-bs-target="#deleteConfirmModal" title="Xóa">
                                         <span class="material-symbols-outlined fs-6 d-block">delete</span>
                                     </button>
@@ -98,42 +100,48 @@
                 <div class="modal-content border-0 shadow">
                     <div class="modal-header bg-light">
                         <h5 class="modal-title fw-bold" id="saleModalLabel">Cài đặt Giảm giá (Flash Sale)</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeModalBtn"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            id="closeModalBtn"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-uppercase text-muted">Tên sách</label>
-                            <input type="text" class="form-control bg-light border-0" :value="saleForm.bookName" disabled>
+                            <input type="text" class="form-control bg-light border-0" :value="saleForm.bookName"
+                                disabled>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-uppercase text-muted">Giá khuyến mãi mới</label>
-                            <input type="text" class="form-control border-primary-subtle" v-model="saleForm.discountPrice" placeholder="VD: 50.000đ">
+                            <input type="text" class="form-control border-primary-subtle"
+                                v-model="saleForm.discountPrice" placeholder="VD: 50.000đ">
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small text-uppercase text-muted">Thời gian bắt đầu</label>
+                                <label class="form-label fw-bold small text-uppercase text-muted">Thời gian bắt
+                                    đầu</label>
                                 <input type="datetime-local" class="form-control" v-model="saleForm.startDate">
                                 <div class="mt-1 px-1" v-if="saleForm.startDate">
-                                    <small class="text-primary fw-medium">Xem lại: {{ formatTimeVN(saleForm.startDate) }}</small>
+                                    <small class="text-primary fw-medium">Xem lại: {{ formatTimeVN(saleForm.startDate)
+                                        }}</small>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small text-uppercase text-muted">Thời gian kết thúc</label>
+                                <label class="form-label fw-bold small text-uppercase text-muted">Thời gian kết
+                                    thúc</label>
                                 <input type="datetime-local" class="form-control" v-model="saleForm.endDate">
                                 <div class="mt-1 px-1" v-if="saleForm.endDate">
-                                    <small class="text-primary fw-medium">Xem lại: {{ formatTimeVN(saleForm.endDate) }}</small>
+                                    <small class="text-primary fw-medium">Xem lại: {{ formatTimeVN(saleForm.endDate)
+                                        }}</small>
                                 </div>
                             </div>
                         </div>
-                        <div class="alert alert-info py-2 mb-0 mt-2" style="font-size: 0.85rem;">
-                            <span class="material-symbols-outlined fs-6 align-middle">info</span> 
-                            Lưu ý: <strong>SA</strong> là Sáng, <strong>CH</strong> là Chiều.
-                        </div>
                     </div>
                     <div class="modal-footer bg-light border-0">
-                        <button v-if="saleForm.isSale" type="button" class="btn btn-outline-danger border-0 me-auto fw-bold" @click="cancelSale">Hủy Sale</button>
+                        <button v-if="saleForm.isSale" type="button"
+                            class="btn btn-outline-danger border-0 me-auto fw-bold" @click="cancelSale">Hủy
+                            Sale</button>
                         <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Đóng</button>
-                        <button type="button" class="btn btn-primary px-4 fw-bold" @click="saveSaleConfig">Lưu thiết lập</button>
+                        <button type="button" class="btn btn-primary px-4 fw-bold" @click="saveSaleConfig">Lưu thiết
+                            lập</button>
                     </div>
                 </div>
             </div>
@@ -146,8 +154,10 @@
                         <span class="material-symbols-outlined text-danger mb-3" style="font-size: 4rem;">error</span>
                         <h4 class="fw-bold">Bạn chắc chắn muốn xóa?</h4>
                         <div class="d-flex gap-2 justify-content-center mt-4">
-                            <button type="button" class="btn btn-light px-4 fw-bold" data-bs-dismiss="modal" id="closeDeleteBtn">Hủy</button>
-                            <button type="button" class="btn btn-danger px-4 fw-bold" @click="executeDelete">Xóa</button>
+                            <button type="button" class="btn btn-light px-4 fw-bold" data-bs-dismiss="modal"
+                                id="closeDeleteBtn">Hủy</button>
+                            <button type="button" class="btn btn-danger px-4 fw-bold"
+                                @click="executeDelete">Xóa</button>
                         </div>
                     </div>
                 </div>
@@ -226,7 +236,7 @@ export default {
             localStorage.setItem('books', JSON.stringify(this.books));
 
             this.toast.success(`Đã xóa xong sách: ${this.deleteTarget.title}`);
-            
+
             document.getElementById('closeDeleteBtn').click();
         },
         formatTimeVN(dateStr) {
@@ -279,6 +289,13 @@ export default {
 </script>
 
 <style scoped>
-.input-group-text, .form-control, .form-select { border-radius: 0.5rem; }
-.btn-light:hover { background-color: #e2e6ea; }
+.input-group-text,
+.form-control,
+.form-select {
+    border-radius: 0.5rem;
+}
+
+.btn-light:hover {
+    background-color: #e2e6ea;
+}
 </style>

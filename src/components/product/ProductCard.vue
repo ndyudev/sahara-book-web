@@ -1,30 +1,29 @@
 <template>
     <div class="product-card">
-        <RouterLink :to="`/product/${book.id}`" class="product-link">
+        <RouterLink :to="`/product/${book.bookId}`" class="product-link">
             <div class="product-img-wrap">
-                <img :src="book.imageUrl || book.image" :alt="book.title" class="product-img"
-                    referrerpolicy="no-referrer" />
+                <img :src="book.imageUrl" :alt="book.title" class="product-img" referrerpolicy="no-referrer" />
 
-                <span v-if="book.badge" class="product-badge"
-                    :class="book.badge === 'NEW' ? 'badge-new' : 'badge-sale'">
-                    {{ book.badge }}
+                <span v-if="book.stockQuantity < 5 && book.stockQuantity > 0" class="product-badge badge-sale">
+                    SẮP HẾT
+                </span>
+                <span v-else-if="book.status === 'ACTIVE'" class="product-badge badge-new">
+                    MỚI
                 </span>
             </div>
         </RouterLink>
 
         <div class="product-info">
-            <span class="product-category">{{ book.category }}</span>
-            <p class="product-title">{{ book.title }}</p>
-            <p class="product-desc">{{ book.description }}</p>
+            <span class="product-category">{{ book.categoryName || book.category?.categoryName || 'Sách' }}</span>
+            <p class="product-title" :title="book.title">{{ book.title }}</p>
+            <p class="product-desc">Tác giả: {{ book.author || 'Đang cập nhật' }}</p>
         </div>
 
         <div class="product-info pt-0">
             <div class="product-footer">
                 <div class="price-stack">
-                    <span class="product-price">{{ formatPrice(book.salePrice) }}</span>
-                    <span v-if="book.originalPrice > book.salePrice" class="product-price-old">
-                        {{ formatPrice(book.originalPrice) }}
-                    </span>
+                    <span class="product-price">{{ formatPrice(book.price) }}</span>
+                    <span v-if="book.stockQuantity === 0" class="out-of-stock">Hết hàng</span>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -32,7 +31,7 @@
                         @click.stop="toggleWishlist">
                         <i :class="isWishlisted ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
                     </button>
-                    <button class="product-cart-btn" @click.stop="addToCart">
+                    <button class="product-cart-btn" :disabled="book.stockQuantity === 0" @click.stop="addToCart">
                         <i class="bi bi-bag-plus"></i>
                     </button>
                 </div>
@@ -45,7 +44,7 @@
 import { ref, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
 
-const toat = useToast();
+const toast = useToast();
 
 const props = defineProps({
     book: { type: Object, required: true }
@@ -106,7 +105,7 @@ const addToCart = () => {
 
     localStorage.setItem('cart', JSON.stringify(cart));
     window.dispatchEvent(new Event('storage'));
-    toat.success(`Đã thêm "${props.book.title}" vào giỏ hàng!`, {
+    toast.success(`Đã thêm "${props.book.title}" vào giỏ hàng!`, {
         timeout: 2000,
         icon: "bi-bag-plus",
         closeOnClick: true,
