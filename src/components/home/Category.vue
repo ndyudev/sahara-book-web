@@ -32,14 +32,14 @@ const router = useRouter()
 const categories = ref([])
 const isLoading = ref(true)
 
-const fetchCategories = async () => {
+const fetchData = async () => {
   try {
     isLoading.value = true
     const res = await api.get("/api/v1/categories")
 
     categories.value = res.data.result.filter(cat => !cat.parentId)
   } catch (error) {
-    console.error("Lỗi lấy danh mục:", error)
+    console.error("Lỗi lấy danh mục", error)
   } finally {
     isLoading.value = false
   }
@@ -50,7 +50,7 @@ const filterByCategory = (id) => {
 }
 
 onMounted(() => {
-  fetchCategories()
+  fetchData()
 })
 </script>
 <style scoped>

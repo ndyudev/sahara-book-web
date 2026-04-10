@@ -53,7 +53,7 @@ const isWishlisted = ref(false)
 
 const checkWishlistStatus = () => {
     const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]')
-    isWishlisted.value = wishlist.some(item => item.id === props.book.id)
+    isWishlisted.value = wishlist.some(item => item.bookId === props.book.bookId)
 }
 
 onMounted(() => {
@@ -62,20 +62,28 @@ onMounted(() => {
 
 const toggleWishlist = () => {
     let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]')
-    const index = wishlist.findIndex(item => item.id === props.book.id)
+    const index = wishlist.findIndex(item => item.bookId === props.book.bookId)
 
     if (index > -1) {
         wishlist.splice(index, 1)
         isWishlisted.value = false
+        toast.info(`Đã xóa "${props.book.title}" khỏi danh sách yêu thích`, {
+            timeout: 2000,
+            icon: "bi bi-heartbreak-fill"
+        });
     } else {
 
         wishlist.push({
-            id: props.book.id,
-            name: props.book.title,
-            price: props.book.salePrice,
-            image: props.book.imageUrl || props.book.image
+            id: props.book.bookId,
+            title: props.book.title,
+            price: props.book.price,
+            image: props.book.imageUrl
         })
         isWishlisted.value = true
+        toast.success(`Đã thêm "${props.book.title}" vào yêu thích!`, {
+            timeout: 2000,
+            icon: "bi bi-heart-fill"
+        });
     }
 
     localStorage.setItem('wishlist', JSON.stringify(wishlist))
@@ -91,13 +99,13 @@ const addToCart = () => {
 
     if (index !== -1) {
         cart[index].quantity += 1;
-        cart[index].price = Number(props.book.salePrice) || 0;
+        cart[index].price = Number(props.book.price) || 0;
     } else {
         const newProduct = {
-            id: props.book.id,
+            id: props.book.bookId,
             title: props.book.title,
-            price: Number(props.book.salePrice) || 0,
-            image: props.book.imageUrl || props.book.image,
+            price: Number(props.book.price) || 0,
+            image: props.book.imageUrl,
             quantity: 1
         };
         cart.push(newProduct);

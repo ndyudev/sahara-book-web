@@ -1,6 +1,6 @@
 <template>
   <div class="product-layout">
-    <FilterSidebar :filters="filters" :categoryOptions="categoryOptions" @apply="fetchData(false)" />
+    <FilterSidebar :filters="filters" :categoryOptions="categoryOptions" @apply="applyFiltersAndFetch" />
 
     <main class="product-main">
       <div class="product-header">
@@ -16,13 +16,12 @@
         </div>
       </div>
 
-      <ProductGrid v-if="books && books.length > 0" :books="books" />
-      <div v-else-if="books && books.length === 0" class="text-center py-5">
-        Đang tải sản phẩm hoặc không tìm thấy kết quả...
+      <ProductGrid v-if="books.length > 0" :books="books" />
+      <div v-else class="text-center py-5 text-muted">
+        <p>Không tìm thấy sản phẩm nào phù hợp.</p>
       </div>
 
-      <ProductPg v-if="pagesArray && pagesArray.length > 0" :pages="pagesArray" :currentPage="currentPage"
-        @changePage="currentPage = $event" />
+      <ProductPg v-if="totalPages > 1" :pages="pagesArray" :currentPage="currentPage" @changePage="handlePageChange" />
     </main>
 
     <SgSidebar v-if="suggestedBooks.length > 0" :books="suggestedBooks" />
@@ -30,18 +29,19 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, computed } from 'vue'
-import { useRoute } from 'vue-router' // 1. Thêm useRoute để đọc URL
-import { useToast } from 'vue-toastification';
+import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { useToast } from 'vue-toastification'
 import api from '../api/api.js'
+
 import FilterSidebar from '../components/product/FilterSidebar.vue'
 import ProductGrid from '../components/product/ProductGrid.vue'
 import ProductPg from '../components/product/ProductPg.vue'
 import SgSidebar from '../components/product/SgSidebar.vue'
 
-const route = useRoute() // 2. Khai báo route
-const toast = useToast();
+const toast = useToast()
+
 const books = ref([])
+const allBooks = ref([])
 const suggestedBooks = ref([])
 const categoryOptions = ref([])
 
@@ -53,92 +53,100 @@ const filters = reactive({
 
 const activeSort = ref('newest')
 const currentPage = ref(1)
-const totalPages = ref(0);
+const pageSize = 12
 
 const pagesArray = computed(() => {
-  const total = totalPages.value || 0;
-  return total > 0 ? Array.from({ length: total }, (_, i) => i + 1) : [];
-});
+  const totalPages = Math.ceil(books.value.length / pageSize) || 1
+  const pages = []
 
-const fetchData = async (isInitiaLoad = false) => {
+  for (let i = 1; i <= totalPages; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+const fetchData = async () => {
   try {
-    if (isInitiaLoad && route.query.categoryId) {
-      const catIdFromUrl = parseInt(route.query.categoryId);
-      if (!filters.categories.includes(catIdFromUrl)) {
-        filters.categories = [catIdFromUrl];
-      }
-    }
+    const [bookRes, catRes, suggestRes] = await Promise.all([
+      api.get('/api/v1/books', { params: { size: 200 } }),
+      api.get('/api/v1/categories'),
+      api.get('/api/v1/books', { params: { size: 6, sort: 'bestseller' } })
+    ])
 
-    const [bookRes, catRes, suggestRes] = isInitiaLoad
-      ? await Promise.all([
-        api.get("/api/v1/books"),
-        api.get("/api/v1/categories"),
-        api.get("/api/v1/books", { params: { size: 3 } })
-      ])
-      : [await api.get("/api/v1/books"), null, null];
+    allBooks.value = bookRes.data.result?.content || bookRes.data.result || []
 
-    // Lấy toàn bộ mảng sách từ kết quả trả về
-    let allBooks = bookRes.data.result.content || bookRes.data.result || [];
-
-    let filtered = [...allBooks];
-
-    // Lọc theo Tên sách
-    if (filters.search) {
-      filtered = filtered.filter(b =>
-        b.title.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
-
-    // Lọc theo Danh mục
-    if (filters.categories.length > 0) {
-      filtered = filtered.filter(b =>
-        filters.categories.includes(b.categoryId || b.category?.bookId || b.category?.categoryId)
-      );
-    }
-    filtered = filtered.filter(b => (b.price || b.salePrice) <= filters.maxPrice);
-
-  
-    books.value = filtered;
-
-   
-    if (isInitiaLoad) {
-      categoryOptions.value = catRes.data.result.map(cat => ({
+    if (categoryOptions.value.length === 0) {
+      categoryOptions.value = catRes.data.result?.map(cat => ({
         label: cat.categoryName,
         value: cat.categoryId
-      }));
-      suggestedBooks.value = suggestRes.data.result.content || suggestRes.data.result;
+      })) || []
     }
 
-    // Tính toán lại số trang dựa trên mảng đã lọc
-    totalPages.value = Math.ceil(filtered.length / 12);
+    suggestedBooks.value = suggestRes.data.result?.content || suggestRes.data.result || []
 
+    applyFilters()
   } catch (error) {
-    books.value = [];
-    toast.error("Lỗi tải dữ liệu");
-    console.error(error);
+    console.error(error)
+    toast.error("Không thể tải dữ liệu sách")
   }
 }
 
-watch(() => route.query.categoryId, (newId) => {
-  if (newId) {
-    filters.categories = [parseInt(newId)];
-    fetchData();
+
+const applyFilters = () => {
+  let filtered = [...allBooks.value]
+
+
+  if (filters.search?.trim()) {
+    const keyword = filters.search.toLowerCase().trim()
+    filtered = filtered.filter(book =>
+      book.title?.toLowerCase().includes(keyword) ||
+      book.author?.toLowerCase().includes(keyword)
+    )
   }
-});
 
-watch([currentPage, activeSort], () => {
-  fetchData();
-});
 
-onMounted(() => {
-  fetchData(true);
-})
+  if (filters.categories.length > 0) {
+    filtered = filtered.filter(book =>
+      filters.categories.includes(book.categoryId || book.category?.categoryId)
+    )
+  }
 
+
+  filtered = filtered.filter(book => (book.price || 0) <= filters.maxPrice)
+
+
+  if (activeSort.value === 'price-asc') {
+    filtered.sort((a, b) => (a.price || 0) - (b.price || 0))
+  } else if (activeSort.value === 'bestseller') {
+    filtered.sort((a, b) => (b.soldQuantity || 0) - (a.soldQuantity || 0))
+  } else {
+    filtered.sort((a, b) => (b.bookId || 0) - (a.bookId || 0))
+  }
+
+  books.value = filtered
+  currentPage.value = 1
+}
+
+const applyFiltersAndFetch = () => {
+  applyFilters()
+}
+
+const handlePageChange = (page) => {
+  currentPage.value = page
+}
 const sortOptions = [
   { label: 'Mới nhất', value: 'newest' },
   { label: 'Bán chạy', value: 'bestseller' },
   { label: 'Giá thấp - cao', value: 'price-asc' },
 ]
+
+watch(() => filters.search, () => {
+  applyFilters()
+})
+
+onMounted(() => {
+  fetchData()
+})
 </script>
 <style scoped>
 .product-layout {

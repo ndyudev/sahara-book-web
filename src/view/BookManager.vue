@@ -60,7 +60,7 @@
                                 <td>
                                     <div v-if="book.isSale">
                                         <span class="fw-bold text-danger">{{ formatPrice(book.discountPrice)
-                                            }}</span><br>
+                                        }}</span><br>
                                         <small class="text-muted text-decoration-line-through">{{
                                             formatPrice(book.price) }}</small>
                                     </div>
@@ -125,7 +125,7 @@
                                 <input type="datetime-local" class="form-control" v-model="saleForm.startDate">
                                 <div class="mt-1 px-1" v-if="saleForm.startDate">
                                     <small class="text-primary fw-medium">Xem lại: {{ formatTimeVN(saleForm.startDate)
-                                    }}</small>
+                                        }}</small>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -134,7 +134,7 @@
                                 <input type="datetime-local" class="form-control" v-model="saleForm.endDate">
                                 <div class="mt-1 px-1" v-if="saleForm.endDate">
                                     <small class="text-primary fw-medium">Xem lại: {{ formatTimeVN(saleForm.endDate)
-                                    }}</small>
+                                        }}</small>
                                 </div>
                             </div>
                         </div>

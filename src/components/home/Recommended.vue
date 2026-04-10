@@ -8,12 +8,11 @@
                     <img :src="book.imageUrl || 'https://images.unsplash.com/photo-1543004218-ee14110497f8?q=80&w=1000&auto=format&fit=crop'"
                         :alt="book.title" class="rec-img" referrerpolicy="no-referrer" />
                 </div>
-
                 <div class="rec-info">
                     <p class="rec-book-title">{{ book.title }}</p>
                     <p class="rec-author">{{ book.author }}</p>
                     <div class="d-flex align-items-center gap-2">
-                        <p class="rec-price mb-0">{{ formatPrice(book.salePrice) }}</p>
+                        <p class="rec-price mb-0">{{ formatPrice(book.price) }}</p>
                         <span v-if="book.discountPercent > 0" class="badge bg-danger-subtle text-danger small">
                             -{{ book.discountPercent }}%
                         </span>
@@ -29,18 +28,29 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import books from '../../data/products.json'
+import { useToast } from 'vue-toastification';
+import api from '../../api/api';
 
 const router = useRouter();
+const toast = useToast();
+const recommendedBooks = ref([]);
+const loading = ref(false);
 
-
-
-const recommendedBooks = computed(() => {
-    return books.filter(b => b.isFeatured).slice(0, 5);
-});
-
+const fetchData = async () => {
+    loading.value = true;
+    try {
+        const response = await api.get('/api/v1/books', {
+            params: { isFeatured: true, size: 5 }
+        });
+        recommendedBooks.value = response.data.result.content || response.data.result || [];
+    } catch (error) {
+        toast.error("Lỗi lấy dữ liệu:", error);
+    } finally {
+        loading.value = false;
+    }
+};
 const formatPrice = (b) => {
     return (b || 0).toLocaleString('vi-VN') + 'đ';
 };
@@ -48,6 +58,10 @@ const formatPrice = (b) => {
 const viewDetail = (id) => {
     router.push(`/product/${id}`);
 };
+
+onMounted(() => {
+    fetchData();
+})
 </script>
 
 <style scoped>

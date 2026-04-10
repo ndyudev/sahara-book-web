@@ -45,22 +45,41 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import books from '../../data/products.json'
+import api from '../../api/api';
+
+
 const router = useRouter();
+const allRanking = ref([]);
+const loading = ref(false);
 
+const top1 = ref(null);
+const topOthers = ref([]);
 
-const top1 = computed(() => {
-    return books.find(b => b.ranking === 1);
-});
+const fetchData = async () => {
+    loading.value = true;
+    try {
+        const response = await api.get('/api/v1/books', {
+            params: { sort: 'ranking,asc', size: 5 }
+        });
 
+        const data = response.data.result.content || response.data.result || [];
+        allRanking.value = data;
 
-const topOthers = computed(() => {
-    return books
-        .filter(book => book.ranking > 1 && book.ranking <= 5)
-        .sort((a, b) => a.ranking - b.ranking);
-});
+        top1.value = data.find(b => b.ranking === 1) || data[0];
+        topOthers.value = data.filter(b => b.ranking > 1 && b.ranking <= 5);
+
+    } catch (error) {
+        console.error("Lỗi lấy dữ liệu:", error);
+    } finally {
+        loading.value = false;
+    }
+}
+
+onMounted(() => {
+    fetchData();
+})
 
 const goToDetail = (id) => {
     router.push(`/product/${id}`);
@@ -68,7 +87,6 @@ const goToDetail = (id) => {
 </script>
 
 <style scoped>
-
 .weekly-rankings {
     display: flex;
     flex-direction: column;

@@ -53,7 +53,7 @@
                             <div class="oh-covers">
                                 <div v-for="(book, i) in order.books?.slice(0, 3) || []" :key="i" class="oh-cover-wrap"
                                     :style="{ marginLeft: i > 0 ? '-15px' : '0', zIndex: 10 - i }">
-                                    <img :src="book.imageUrl" :alt="book.title" class="oh-cover"
+                                    <img :src="book.image" :alt="book.title" class="oh-cover"
                                         :class="order.status === 'canceled' ? 'oh-cover--grayscale' : ''" />
                                 </div>
                                 <div v-if="order.books.length > 3" class="oh-cover-more" style="margin-left: -15px;">
@@ -160,7 +160,7 @@ const formatPrice = (p) => {
     return p.toLocaleString('vi-VN') + 'đ';
 }
 
-// HÀM HỦY ĐƠN HÀNG VỚI TOAST XÁC NHẬN
+
 const cancelOrder = (id) => {
     toast.warning({
         component: {

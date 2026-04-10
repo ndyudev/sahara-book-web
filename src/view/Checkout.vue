@@ -225,14 +225,18 @@ const placeOrder = () => {
     }
 
     const newOrder = {
-        id: 'SAHARA-' + Date.now(),
-        date: new Date().toLocaleDateString('vi-VN'),
-        status: 'pending',
+        orderId: 'SAHARA-' + Date.now(),
+        orderDate: new Date().toLocaleDateString('vi-VN'),
+        orderStatus: 'pending',
         customerName: form.value.fullname,
         address: form.value.address,
+        shippingMethod: form.value.shipping,
+        shippingFee: shippingFee.value, 
         paymentMethod: form.value.payment === 'cod' ? 'COD' : 'Chuyển khoản',
-        total: total.value,
-        books: cartBooks.value
+        subtotal: subtotal.value,
+        discount: discount.value,
+        totalAmount: total.value, 
+        items: cartBooks.value 
     }
 
     const existingOrders = JSON.parse(localStorage.getItem('user_orders')) || []

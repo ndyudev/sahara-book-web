@@ -152,11 +152,10 @@ const fetchData = async () => {
     const res = await api.get("/api/v1/categories");
     const dataFromDB = res.data.result;
 
-    const chunkSize = 4;
+    const chunkSize = 1;
     const groups = [];
     for (let i = 0; i < dataFromDB.length; i += chunkSize) {
       groups.push({
-        title: 'Tất cả danh mục',
         items: dataFromDB.slice(i, i + chunkSize).map(cat => ({
           label: cat.categoryName,
           id: cat.categoryId,

@@ -13,15 +13,18 @@
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label class="form-label fw-bold small text-muted text-uppercase">Họ và tên</label>
-                            <input v-model="newUser.name" type="text" class="form-control bg-light border-0 py-2" placeholder="Nhập họ tên...">
+                            <input v-model="newUser.name" type="text" class="form-control bg-light border-0 py-2"
+                                placeholder="Nhập họ tên...">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-muted text-uppercase">Email</label>
-                            <input v-model="newUser.email" type="email" class="form-control bg-light border-0 py-2" placeholder="example@gmail.com">
+                            <input v-model="newUser.email" type="email" class="form-control bg-light border-0 py-2"
+                                placeholder="example@gmail.com">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-muted text-uppercase">Số điện thoại</label>
-                            <input v-model="newUser.phone" type="text" class="form-control bg-light border-0 py-2" placeholder="090...">
+                            <input v-model="newUser.phone" type="text" class="form-control bg-light border-0 py-2"
+                                placeholder="090...">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-muted text-uppercase">Ngày sinh</label>
@@ -38,9 +41,14 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-muted text-uppercase">Trạng thái</label>
-                            <select v-model="newUser.status" class="form-select bg-light border-0 py-2">
-                                <option value="Hoạt động">Hoạt động</option>
-                                <option value="Bị khóa">Bị khóa (Tạm dừng)</option>
+                            <select v-model="newUser.status" class="form-select bg-light border-0 py-2 fw-bold" :class="{
+                                'text-success': newUser.status === 'ACTIVE',
+                                'text-warning': newUser.status === 'INACTIVE',
+                                'text-danger': newUser.status === 'BLOCKED'
+                            }">
+                                <option value="ACTIVE" class="text-success fw-bold">Hoạt động</option>
+                                <option value="INACTIVE" class="text-warning fw-bold">Chưa kích hoạt</option>
+                                <option value="BLOCKED" class="text-danger fw-bold">Bị khóa</option>
                             </select>
                         </div>
                     </div>
@@ -51,8 +59,8 @@
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label class="form-label fw-bold small text-muted text-uppercase">Địa chỉ chi tiết</label>
-                            <textarea v-model="newUser.address" class="form-control bg-light border-0"
-                                rows="3" placeholder="Số nhà, tên đường..."></textarea>
+                            <textarea v-model="newUser.address" class="form-control bg-light border-0" rows="3"
+                                placeholder="Số nhà, tên đường..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -60,7 +68,8 @@
 
             <div class="col-md-4">
                 <div class="card border-0 rounded-4 shadow-sm p-4 text-center mb-4">
-                    <label class="form-label fw-bold d-block text-start small text-muted text-uppercase">Ảnh đại diện</label>
+                    <label class="form-label fw-bold d-block text-start small text-muted text-uppercase">Ảnh đại
+                        diện</label>
                     <div @click="triggerUpload"
                         class="d-flex flex-column align-items-center justify-content-center py-4 border border-2 border-dashed rounded-4 bg-light mt-2"
                         style="cursor: pointer; min-height: 180px;">
@@ -70,83 +79,85 @@
                                 class="w-100 h-100 object-fit-cover">
                             <span v-else class="material-symbols-outlined fs-1 text-secondary">add_a_photo</span>
                         </div>
-                        <span class="fw-bold text-primary small">Bấm để tải ảnh đại diện</span>
+                        <span class="fw-bold text-primary small">Bấm để tải ảnh</span>
                         <input type="file" ref="fileInput" class="d-none" @change="handleFileUpload" accept="image/*">
                     </div>
                 </div>
 
                 <div class="d-grid gap-2">
-                    <button @click="saveUser"
-                        class="btn btn-primary text-white fw-bold py-2 rounded-3 shadow-sm">Lưu khách hàng</button>
-                    <router-link to="/admin/users" class="btn btn-light py-2 rounded-3 fw-bold text-decoration-none text-center">Hủy</router-link>
+                    <button @click="saveUser" class="btn btn-primary text-white fw-bold py-2 rounded-3 shadow-sm">Lưu
+                        khách hàng</button>
+                    <router-link to="/admin/users"
+                        class="btn btn-light py-2 rounded-3 fw-bold text-decoration-none text-center">Hủy</router-link>
                 </div>
             </div>
         </div>
     </div>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive } from 'vue';
+import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
+import api from '../api/api';
 
-export default {
-    name: "UserCreate",
-    setup() {
-        const toast = useToast();
-        return { toast };
-    },
-    data() {
-        return {
-            newUser: {
-                name: "",
-                email: "",
-                phone: "",
-                birthday: "",
-                gender: "",
-                status: "Hoạt động",
-                address: "",
-                avatarPreview: null
-            }
-        };
-    },
-    methods: {
-        triggerUpload() {
-            this.$refs.fileInput.click();
-        },
-        handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                this.newUser.avatarPreview = URL.createObjectURL(file);
-            }
-        },
-        saveUser() {
-            if (!this.newUser.name || !this.newUser.phone) {
-                this.toast.error("Vui lòng nhập tên và số điện thoại khách hàng!");
-                return;
-            }
+const router = useRouter();
+const toast = useToast();
+const fileInput = ref(null);
+const selectedAvatar = ref(null);
 
-            let list = JSON.parse(localStorage.getItem('users')) || [];
+const newUser = reactive({
+    name: "",
+    email: "",
+    phone: "",
+    birthday: "",
+    gender: "",
+    status: "ACTIVE",
+    address: "",
+    avatarPreview: null
+});
 
-            const newUserObj = {
-                id: "U" + Math.floor(Math.random() * 10000), 
-                name: this.newUser.name,
-                email: this.newUser.email || "Chưa có",
-                phone: this.newUser.phone,
-                birthday: this.newUser.birthday,
-                gender: this.newUser.gender,
-                address: this.newUser.address,
-                joinDate: new Date().toLocaleDateString('vi-VN'),
-                status: this.newUser.status,
+const triggerUpload = () => {
+    fileInput.value.click();
+};
 
-                avatar: this.newUser.avatarPreview || "/src/assets/logo/logo.png"
-            };
-
-            list.unshift(newUserObj);
-            localStorage.setItem('users', JSON.stringify(list));
-
-            this.toast.success(`Đã thêm khách hàng "${this.newUser.name}" thành công!`);
-            this.$router.push('/admin/users');
-        }
+const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        selectedAvatar.value = file; 
+        newUser.avatarPreview = URL.createObjectURL(file);
     }
-}
-</script>
+};
 
+const saveUser = async () => {
+    if (!newUser.name || !newUser.email) {
+        toast.error("Họ tên và Email không được để trống!");
+        return;
+    }
+
+    try {
+        const newUserObject = {
+            fullName: newUser.name,
+            email: newUser.email,
+            phone: newUser.phone, 
+            dob: newUser.birthday,      
+            gender: newUser.gender,
+            status: newUser.status,
+            username: newUser.email.split('@')[0], 
+            role: "USER"
+        };
+        console.log("Dữ liệu gửi lên:", newUserObject);
+
+        const response = await api.post('/api/v1/accounts', newUserObject);
+
+        if (response.data.code === 1000 || response.status === 200 || response.status === 201) {
+            toast.success(`Đã thêm khách hàng "${newUser.name}" thành công!`);
+            router.push('/admin/users');
+        }
+    } catch (error) {
+        console.error("Lỗi chi tiết:", error.response?.data);
+        const errorMsg = error.response?.data?.message || "Không thêm được người dùng!";
+        toast.error(errorMsg);
+    }
+};
+</script>

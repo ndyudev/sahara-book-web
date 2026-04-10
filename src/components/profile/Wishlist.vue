@@ -6,31 +6,32 @@
                 <p class="text-muted small mb-0">Lưu lại những sản phẩm bạn quan tâm để mua sau.</p>
             </div>
             <span class="badge rounded-pill bg-white text-dark border px-3 py-2 shadow-sm">
-                <i class="bi bi-heart-fill text-danger me-2"></i>{{ wishlistItems.length }} sản phẩm
+                <i class="bi bi-heart-fill text-danger me-2"></i>{{ wishlistBooks.length }} sản phẩm
             </span>
         </div>
 
-        <div v-if="wishlistItems.length > 0" class="row g-4">
-            <div v-for="item in wishlistItems" :key="item.id" class="col-12 col-md-6 col-xl-4">
+        <div v-if="wishlistBooks.length > 0" class="row g-4">
+            <div v-for="b in wishlistBooks" :key="b.bookId" class="col-12 col-md-6 col-xl-4">
                 <div class="wish-card shadow-sm border-0">
                     <div class="wish-img-container">
-                        <img :src="item.image" :alt="item.name" class="wish-img">
-                        <button @click="removeFromWishlist(item.id)" class="wish-remove-btn" title="Xóa khỏi danh sách">
+                        <img :src="b.image" :alt="b.title" class="wish-img">
+                        <button @click="removeFromWishlist(b.bookId)" class="wish-remove-btn"
+                            title="Xóa khỏi danh sách">
                             <i class="bi bi-trash3"></i>
                         </button>
                     </div>
 
                     <div class="wish-content p-3">
-                        <h5 class="wish-item-name text-truncate" :title="item.name">{{ item.name }}</h5>
-                        <div class="d-flex align-items-center gap-2 mb-3">
-                            <span class="wish-price">{{ formatPrice(item.price) }}</span>
-                            <span v-if="item.oldPrice" class="wish-old-price text-decoration-line-through">
-                                {{ formatPrice(item.oldPrice) }}
-                            </span>
+                        <div class="wish-content p-3">
+                            <h5 class="wish-item-name text-truncate" :title="b.title">{{ b.title }}</h5>
+
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="wish-price">{{ formatPrice(b.price) }}</span>
+                            </div>
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button @click="moveToCart(item)" class="wish-add-cart-btn">
+                            <button @click="moveToCart(b)" class="wish-add-cart-btn">
                                 <i class="bi bi-cart-plus me-2"></i>Chuyển vào giỏ
                             </button>
                         </div>
@@ -57,18 +58,18 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useToast } from "vue-toastification" 
+import { useToast } from "vue-toastification"
 
-const wishlistItems = ref([])
-const toast = useToast() 
+const wishlistBooks = ref([])
+const toast = useToast()
 
 const loadWishlist = () => {
     try {
         const saved = JSON.parse(localStorage.getItem('wishlist')) || []
-        wishlistItems.value = saved
+        wishlistBooks.value = saved
     } catch (e) {
         console.error("Lỗi khi tải wishlist:", e)
-        wishlistItems.value = []
+        wishlistBooks.value = []
     }
 }
 
@@ -86,30 +87,31 @@ onUnmounted(() => {
 })
 
 
-const removeFromWishlist = (id, showToast = true) => {
-    const item = wishlistItems.value.find(i => i.id === id)
-    wishlistItems.value = wishlistItems.value.filter(item => item.id !== id)
-    localStorage.setItem('wishlist', JSON.stringify(wishlistItems.value))
+const removeFromWishlist = (bookId, showToast = true) => {
+    const bookToDelete = wishlistBooks.value.find(b => b.bookId === bookId)
+
+    wishlistBooks.value = wishlistBooks.value.filter(b => b.bookId !== bookId)
+    localStorage.setItem('wishlist', JSON.stringify(wishlistBooks.value))
     window.dispatchEvent(new Event('storage'))
-    
-    if (showToast && item) {
-        toast.info(`Đã xóa ${item.name} khỏi danh sách`)
+
+    if (showToast && bookToDelete) {
+        toast.info(`Đã xóa ${bookToDelete.title} khỏi danh sách`)
     }
 }
 
-const moveToCart = (item) => {
+const moveToCart = (book) => {
     const cartData = localStorage.getItem('cart')
     let cart = cartData ? JSON.parse(cartData) : []
 
-    const index = cart.findIndex(c => c.id === item.id)
+    const index = cart.findIndex(c => c.bookId === book.bookId)
     if (index !== -1) {
         cart[index].quantity += 1
     } else {
         cart.push({
-            id: item.id,
-            title: item.name,
-            price: Number(item.price) || 0,
-            image: item.image,
+            bookId: book.bookId,
+            title: book.title,
+            price: Number(book.price) || 0,
+            image: book.imageUrl,
             quantity: 1
         })
     }
@@ -117,13 +119,14 @@ const moveToCart = (item) => {
     localStorage.setItem('cart', JSON.stringify(cart))
     window.dispatchEvent(new Event('storage'))
 
-    removeFromWishlist(item.id, false)
+    removeFromWishlist(book.bookId, false)
 
-    toast.success(`Đã thêm ${item.name} vào giỏ hàng!`)
+    toast.success(`Đã thêm ${book.title} vào giỏ hàng!`)
 }
 
 const formatPrice = (p) => {
-    const value = Number(p) || 0
+    const value = Number(p)
+    if (isNaN(value)) return '0đ'
     return value.toLocaleString('vi-VN') + 'đ'
 }
 </script>

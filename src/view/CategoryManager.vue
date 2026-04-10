@@ -21,43 +21,43 @@
 
       <div class="card-body p-0">
         <div class="table-responsive">
-<table class="table table-hover align-middle mb-0">
-    <thead class="table-light text-muted small text-uppercase">
-        <tr>
-            <th class="ps-4 py-3">ID</th>
-            <th>Tên danh mục</th>
-            <th>Mô tả</th>
-            <th>Trạng thái</th>
-            <th class="text-end pe-4">Thao tác</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr v-for="cat in filteredCategories" :key="cat.categoryId">
-            <td class="ps-4 fw-bold text-muted">#{{ cat.categoryId }}</td>
-            <td><span class="fw-bold text-dark">{{ cat.categoryName }}</span></td>
-            <td class="text-muted small">{{ cat.description }}</td>
-            <td>
-                <span class="badge"
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-muted small text-uppercase">
+              <tr>
+                <th class="ps-4 py-3">ID</th>
+                <th>Tên danh mục</th>
+                <th>Mô tả</th>
+                <th>Trạng thái</th>
+                <th class="text-end pe-4">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="cat in filteredCategories" :key="cat.categoryId">
+                <td class="ps-4 fw-bold text-muted">#{{ cat.categoryId }}</td>
+                <td><span class="fw-bold text-dark">{{ cat.categoryName }}</span></td>
+                <td class="text-muted small">{{ cat.description }}</td>
+                <td>
+                  <span class="badge"
                     :class="cat.status === 'ACTIVE' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'">
                     {{ cat.status === 'ACTIVE' ? 'Đang hoạt động' : 'Tạm ngưng' }}
-                </span>
-            </td>
-            <td class="text-end pe-4">
-                <router-link :to="'/admin/categories/' + cat.categoryId"
+                  </span>
+                </td>
+                <td class="text-end pe-4">
+                  <router-link :to="'/admin/categories/' + cat.categoryId"
                     class="btn btn-sm btn-light text-primary rounded-circle p-2 me-2" title="Sửa">
                     <span class="material-symbols-outlined fs-5 d-block">edit</span>
-                </router-link>
-                <button @click="openDeleteModal(cat)" class="btn btn-sm btn-light text-danger rounded-circle p-2"
+                  </router-link>
+                  <button @click="openDeleteModal(cat)" class="btn btn-sm btn-light text-danger rounded-circle p-2"
                     data-bs-toggle="modal" data-bs-target="#deleteCatModal" title="Xóa">
                     <span class="material-symbols-outlined fs-5 d-block">delete</span>
-                </button>
-            </td>
-        </tr>
-        <tr v-if="filteredCategories.length === 0">
-            <td colspan="5" class="text-center py-5 text-muted">Không tìm thấy danh mục nào.</td>
-        </tr>
-    </tbody>
-</table>
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="filteredCategories.length === 0">
+                <td colspan="5" class="text-center py-5 text-muted">Không tìm thấy danh mục nào.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -96,12 +96,10 @@ const fetchData = async () => {
   try {
 
     const res = await api.get("/api/v1/categories");
-
     list.value = res.data.result;
-    console.log("Fetch thành công:", list.value);
   } catch (error) {
-    console.error("Lỗi fetch:", error);
-    toast.error("Lỗi kết nối server!");
+    console.error(error);
+    toast.error("Không tải được danh mục sách!");
   }
 };
 
