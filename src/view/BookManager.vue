@@ -156,7 +156,6 @@
                     <div class="modal-body text-center p-4">
                         <span class="material-symbols-outlined text-danger mb-3" style="font-size: 4rem;">error</span>
                         <h4 class="fw-bold">Bạn chắc chắn muốn xóa?</h4>
-                        <p class="text-muted">Cuốn sách <b>{{ deleteTarget.title }}</b> sẽ bị xóa khỏi hệ thống.</p>
                         <div class="d-flex gap-2 justify-content-center mt-4">
                             <button type="button" class="btn btn-light px-4 fw-bold" data-bs-dismiss="modal"
                                 id="closeDeleteBtn">Hủy</button>
