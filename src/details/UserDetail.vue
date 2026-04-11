@@ -57,22 +57,31 @@
 
             <div class="col-md-4">
                 <div class="card border-0 rounded-4 shadow-sm p-4 text-center mb-4">
-                    <label class="form-label fw-bold d-block text-start small text-muted text-uppercase">Ảnh đại diện</label>
-                    <div @click="triggerUpload" class="d-flex flex-column align-items-center justify-content-center py-4 border border-2 border-dashed rounded-4 bg-light mt-2" style="cursor: pointer; min-height: 180px;">
-                        <div class="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px; overflow: hidden; border: 2px solid #ddd;">
+                    <label class="form-label fw-bold d-block text-start small text-muted text-uppercase">Ảnh đại
+                        diện</label>
+                    <div @click="triggerUpload"
+                        class="d-flex flex-column align-items-center justify-content-center py-4 border border-2 border-dashed rounded-4 bg-light mt-2"
+                        style="cursor: pointer; min-height: 180px;">
+                        <div class="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center mb-3"
+                            style="width: 120px; height: 120px; overflow: hidden; border: 2px solid #ddd;">
                             <img :src="user.avatar" class="w-100 h-100 object-fit-cover">
                         </div>
                         <span class="fw-bold text-primary small">Bấm để đổi ảnh</span>
                         <input type="file" ref="fileInput" class="d-none" @change="handleFileUpload" accept="image/*">
                     </div>
-                    <small class="text-muted d-block mt-3 italic">Ngày tham gia: <strong>{{ user.joinDate }}</strong></small>
+                    <small class="text-muted d-block mt-3 italic">Ngày tham gia: <strong>{{ user.joinDate
+                    }}</strong></small>
                 </div>
 
                 <div class="d-grid gap-2">
-                    <button @click="updateUser" class="btn btn-primary text-white fw-bold py-2 rounded-3 shadow-sm">Cập nhật thông tin</button>
-                    <button class="btn btn-outline-danger py-2 rounded-3 fw-bold border-0" data-bs-toggle="modal" data-bs-target="#confirmDeleteUser">Xóa khách hàng</button>
+                    <button @click="updateUser" class="btn btn-primary text-white fw-bold py-2 rounded-3 shadow-sm">Cập
+                        nhật thông tin</button>
+                    <button class="btn btn-outline-danger py-2 rounded-3 fw-bold border-0" data-bs-toggle="modal"
+                        data-bs-target="#confirmDeleteUser">Xóa khách hàng</button>
                     <hr>
-                    <router-link to="/admin/users" class="btn btn-light py-2 rounded-3 fw-bold text-decoration-none text-center">Hủy bỏ</router-link>
+                    <router-link to="/admin/users"
+                        class="btn btn-light py-2 rounded-3 fw-bold text-decoration-none text-center">Hủy
+                        bỏ</router-link>
                 </div>
             </div>
         </div>
@@ -81,11 +90,14 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow">
                     <div class="modal-body text-center p-4">
-                        <span class="material-symbols-outlined text-danger mb-3" style="font-size: 4rem;">person_remove</span>
+                        <span class="material-symbols-outlined text-danger mb-3"
+                            style="font-size: 4rem;">person_remove</span>
                         <h4 class="fw-bold">Bạn chắc chắn muốn xóa?</h4>
                         <div class="d-flex gap-2 justify-content-center mt-4">
-                            <button type="button" class="btn btn-light px-4 fw-bold" data-bs-dismiss="modal" id="closeDelUserBtn">Hủy</button>
-                            <button type="button" class="btn btn-danger px-4 fw-bold" @click="confirmDelete">Xóa</button>
+                            <button type="button" class="btn btn-light px-4 fw-bold" data-bs-dismiss="modal"
+                                id="closeDelUserBtn">Hủy</button>
+                            <button type="button" class="btn btn-danger px-4 fw-bold"
+                                @click="confirmDelete">Xóa</button>
                         </div>
                     </div>
                 </div>
@@ -96,6 +108,7 @@
 
 <script>
 import { useToast } from 'vue-toastification';
+import api from '../api/api';
 
 export default {
     name: "UserDetail",
@@ -112,7 +125,7 @@ export default {
                 phone: "",
                 birthday: "",
                 gender: "",
-                status: "Hoạt động",
+                status: "ACTIVE", // Mặc định dùng Enum để khớp Database
                 address: "",
                 avatar: "",
                 joinDate: ""
@@ -121,17 +134,30 @@ export default {
     },
     mounted() {
         const userId = this.$route.params.id;
-        this.fetchUser(userId);
+        // Gọi đúng tên hàm fetchData bên dưới
+        this.fetchData(userId);
     },
     methods: {
-        fetchUser(id) {
-            const list = JSON.parse(localStorage.getItem('users')) || [];
-            const found = list.find(u => String(u.id) === String(id));
-            if (found) {
-                this.user = { ...found }; 
-            } else {
-                this.toast.error("Không tìm thấy khách hàng này!");
-                this.$router.push('/admin/users');
+        async fetchData(id) {
+            try {
+                const res = await api.get(`/api/v1/accounts/${id}`);
+                const data = res.data.result || res.data;
+
+                this.user = {
+                    id: data.accountId,
+                    name: data.fullName,
+                    email: data.email,
+                    phone: data.phone,
+                    status: data.status,
+                    birthday: data.birthday || "",
+                    gender: data.gender || "Nam",
+                    address: data.address || "",
+                    avatar: data.avatar || `https://ui-avatars.com/api/?name=${data.fullName}`,
+                    joinDate: data.createdAt ? new Date(data.createdAt).toLocaleDateString('vi-VN') : "Chưa có"
+                };
+            } catch (error) {
+                console.error("Lỗi API:", error);
+                this.toast.error("Không thể lấy thông tin khách hàng từ hệ thống!");
             }
         },
         triggerUpload() {
@@ -143,31 +169,38 @@ export default {
                 this.user.avatar = URL.createObjectURL(file);
             }
         },
-        updateUser() {
+        async updateUser() {
             if (!this.user.name || !this.user.phone) {
                 this.toast.error("Vui lòng không để trống tên và số điện thoại!");
                 return;
             }
-
-            let list = JSON.parse(localStorage.getItem('users')) || [];
-            const index = list.findIndex(u => String(u.id) === String(this.user.id));
-
-            if (index !== -1) {
-                list[index] = this.user; 
-                localStorage.setItem('users', JSON.stringify(list));
-                this.toast.success(`Đã cập nhật thông tin cho khách hàng "${this.user.name}" thành công!`);
+            try {
+                const payload = {
+                    fullName: this.user.name,
+                    phone: this.user.phone,
+                    status: this.user.status,
+                    birthday: this.user.birthday,
+                    gender: this.user.gender
+                };
+                await api.put(`/api/v1/accounts/${this.user.id}`, payload);
+                this.toast.success(`Cập nhật thành công khách hàng "${this.user.name}"`);
                 this.$router.push('/admin/users');
+            } catch (error) {
+                this.toast.error("Cập nhật thất bại, vui lòng thử lại!");
             }
         },
-        confirmDelete() {
-            let list = JSON.parse(localStorage.getItem('users')) || [];
-            list = list.filter(u => String(u.id) !== String(this.user.id));
-            localStorage.setItem('users', JSON.stringify(list));
+        async confirmDelete() {
+            try {
+                await api.delete(`/api/v1/accounts/${this.user.id}`);
+                // Đóng modal bằng cách giả lập click nút Hủy
+                const closeBtn = document.getElementById('closeDelUserBtn');
+                if (closeBtn) closeBtn.click();
 
-            document.getElementById('closeDelUserBtn').click();
-
-            this.toast.success("Đã xóa khách hàng thành công!");
-            this.$router.push('/admin/users');
+                this.toast.success("Đã xóa khách hàng thành công!");
+                this.$router.push('/admin/users');
+            } catch (error) {
+                this.toast.error("Xóa thất bại!");
+            }
         }
     }
 }

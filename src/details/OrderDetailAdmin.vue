@@ -10,7 +10,8 @@
         <p class="text-muted small mb-0">Ngày đặt: {{ order.date }}</p>
       </div>
       <div class="d-flex gap-2">
-        <button @click="printOrder" class="btn btn-outline-dark fw-bold d-flex align-items-center gap-2 px-3 rounded-3 shadow-sm border-0 bg-light">
+        <button @click="printOrder"
+          class="btn btn-outline-dark fw-bold d-flex align-items-center gap-2 px-3 rounded-3 shadow-sm border-0 bg-light">
           <span class="material-symbols-outlined fs-5">print</span> In đơn hàng
         </button>
         <span class="badge rounded-pill px-4 py-2 d-flex align-items-center fs-6" :class="order.statusClass">
@@ -34,7 +35,8 @@
             </div>
             <div class="col-sm-12">
               <p class="form-label small fw-bold text-muted">Địa chỉ giao hàng</p>
-              <p class="form-control bg-light border-0 py-2">Số 123, Đường Sahara, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh</p>
+              <p class="form-control bg-light border-0 py-2">Số 123, Đường Sahara, Phường Bến Nghé, Quận 1, TP. Hồ Chí
+                Minh</p>
             </div>
           </div>
         </div>
@@ -108,8 +110,13 @@
 </template>
 
 <script>
+import { useToast } from 'vue-toastification';
 export default {
   name: "OrderDetailAdmin",
+  setup() {
+    const toast = useToast();
+    return { toast };
+  },
   data() {
     return {
       order: {},
@@ -130,7 +137,6 @@ export default {
       if (found) {
         this.order = found;
       } else {
-        alert("Không tìm thấy đơn hàng!");
         this.$router.push('/admin/orders');
       }
     },

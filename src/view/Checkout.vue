@@ -86,22 +86,22 @@
             <div class="col-12 col-lg-4">
                 <div class="checkout-card p-4" style="top: 80px;">
                     <h5 class="mb-4 fw-bold">Tóm tắt đơn hàng <span class="text-muted fw-normal small">({{
-                        cartItems.length }})</span></h5>
+                        cartBooks.length }})</span></h5>
 
                     <div class="cart-items-preview mb-4">
-                        <div v-for="item in cartItems" :key="item.id" class="d-flex align-items-center gap-3 mb-3">
+                        <div v-for="b in cartBooks" :key="b.bookId" class="d-flex align-items-center gap-3 mb-3">
                             <div class="position-relative">
-                                <img :src="item.imageUrl" class="rounded-2"
+                                <img :src="b.image" class="rounded-2"
                                     style="width:50px; height:50px; object-fit: cover;" />
                                 <span
                                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark"
                                     style="font-size: 10px;">
-                                    {{ item.quantity }}
+                                    {{ b.quantity }}
                                 </span>
                             </div>
                             <div class="flex-grow-1 overflow-hidden">
-                                <p class="mb-0 small fw-bold text-truncate">{{ item.title }}</p>
-                                <p class="mb-0 small text-muted">{{ formatPrice(item.price) }}</p>
+                                <p class="mb-0 small fw-bold text-truncate">{{ b.title }}</p>
+                                <p class="mb-0 small text-muted">{{ formatPrice(b.price) }}</p>
                             </div>
                         </div>
                     </div>
@@ -149,7 +149,7 @@ import { useToast } from "vue-toastification"
 const router = useRouter()
 const toast = useToast()
 
-const cartItems = ref([])
+const cartBooks = ref([])
 const couponCode = ref('')
 const discount = ref(0)
 
@@ -175,10 +175,10 @@ const paymentMethods = [
 onMounted(() => {
     const savedCart = localStorage.getItem('cart')
     if (savedCart) {
-        cartItems.value = JSON.parse(savedCart)
+        cartBooks.value = JSON.parse(savedCart)
     }
 
-    if (cartItems.value.length === 0) {
+    if (cartBooks.value.length === 0) {
         toast.info("Giỏ hàng của bạn đang trống.");
         router.push('/product')
         return
@@ -194,7 +194,7 @@ onMounted(() => {
     }
 })
 
-const subtotal = computed(() => cartItems.value.reduce((s, i) => s + i.price * i.quantity, 0))
+const subtotal = computed(() => cartBooks.value.reduce((s, i) => s + i.price * i.quantity, 0))
 const shippingFee = computed(() => shippingOptions.find(o => o.value === form.value.shipping)?.price || 0)
 const total = computed(() => subtotal.value + shippingFee.value - discount.value)
 
@@ -225,14 +225,18 @@ const placeOrder = () => {
     }
 
     const newOrder = {
-        id: 'SAHARA-' + Date.now(),
-        date: new Date().toLocaleDateString('vi-VN'),
-        status: 'pending',
+        orderId: 'SAHARA-' + Date.now(),
+        orderDate: new Date().toLocaleDateString('vi-VN'),
+        orderStatus: 'pending',
         customerName: form.value.fullname,
         address: form.value.address,
+        shippingMethod: form.value.shipping,
+        shippingFee: shippingFee.value, 
         paymentMethod: form.value.payment === 'cod' ? 'COD' : 'Chuyển khoản',
-        total: total.value,
-        books: cartItems.value
+        subtotal: subtotal.value,
+        discount: discount.value,
+        totalAmount: total.value, 
+        items: cartBooks.value 
     }
 
     const existingOrders = JSON.parse(localStorage.getItem('user_orders')) || []

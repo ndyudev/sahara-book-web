@@ -1,13 +1,17 @@
 <template>
     <div class="pagination-wrap">
-        <button class="page-btn"><i class="bi bi-chevron-left"></i></button>
+        <button class="page-btn" :disabled="currentPage === 1">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+
         <button v-for="page in pages" :key="page" class="page-btn" :class="{ active: currentPage === page }"
             @click="$emit('changePage', page)">
             {{ page }}
         </button>
-        <span class="page-dots">...</span>
-        <button class="page-btn" @click="$emit('changePage', 12)">12</button>
-        <button class="page-btn"><i class="bi bi-chevron-right"></i></button>
+
+        <button class="page-btn" :disabled="currentPage === pages.length">
+            <i class="bi bi-chevron-right"></i>
+        </button>
     </div>
 </template>
 

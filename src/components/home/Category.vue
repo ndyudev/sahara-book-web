@@ -9,13 +9,13 @@
     </div>
 
     <div class="cat-grid">
-      <div v-for="cat in uniqueCategories" :key="cat.slug" class="cat-card" @click="filterByCategory(cat.slug)">
+      <div v-for="cat in categories" :key="cat.categoryId" class="cat-card" @click="filterByCategory(cat.categoryId)">
         <img
-          :src="cat.image || 'https://images.unsplash.com/photo-1543004218-ee14110497f8?q=80&w=1000&auto=format&fit=crop'"
-          :alt="cat.name" class="cat-img" referrerpolicy="no-referrer" />
+          :src="cat.imageUrl || 'https://images.unsplash.com/photo-1543004218-ee14110497f8?q=80&w=1000&auto=format&fit=crop'"
+          :alt="cat.categoryName" class="cat-img" referrerpolicy="no-referrer" />
         <div class="cat-overlay"></div>
         <div class="cat-label">
-          {{ cat.name }}
+          {{ cat.categoryName }}
           <span class="cat-count">{{ cat.count }} sản phẩm</span>
         </div>
       </div>
@@ -24,38 +24,35 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import books from '../../data/products.json'
+import api from '../../api/api';
+
 const router = useRouter()
+const categories = ref([])
+const isLoading = ref(true)
 
-const uniqueCategories = computed(() => {
-  const map = {}
+const fetchData = async () => {
+  try {
+    isLoading.value = true
+    const res = await api.get("/api/v1/categories")
 
-  books.forEach(b => {
-    if (!map[b.category]) {
-      map[b.category] = {
-        name: b.category,
-        slug: b.categorySlug,
-        image: b.imageUrl,
-        count: 0
-      }
-    }
-    map[b.category].count++
-
-    if (!map[b.category].image && b.imageUrl) {
-      map[b.category].image = b.imageUrl
-    }
-  })
-
-  return Object.values(map)
-})
-
-const filterByCategory = (slug) => {
-  router.push({ path: '/product', query: { category: slug } })
+    categories.value = res.data.result.filter(cat => !cat.parentId)
+  } catch (error) {
+    console.error("Lỗi lấy danh mục", error)
+  } finally {
+    isLoading.value = false
+  }
 }
-</script>
 
+const filterByCategory = (id) => {
+  router.push({ path: '/product', query: { categoryId: id } })
+}
+
+onMounted(() => {
+  fetchData()
+})
+</script>
 <style scoped>
 .categories-section {
   width: 100%;

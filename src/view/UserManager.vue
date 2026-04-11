@@ -49,9 +49,12 @@
                                 </td>
                                 <td class="text-muted small">{{ formatDate(user.createdAt) }}</td>
                                 <td>
-                                    <span class="badge rounded-pill px-3 py-2 fw-semibold"
-                                        :class="user.status === 'ACTIVE' ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'">
-                                        {{ user.status === 'ACTIVE' ? 'Hoạt động' : 'Bị khóa' }}
+                                    <span class="badge rounded-pill px-3 py-2 fw-semibold" :class="{
+                                        'bg-success bg-opacity-10 text-success': user.status === 'ACTIVE',
+                                        'bg-warning bg-opacity-10 text-warning': user.status === 'INACTIVE',
+                                        'bg-danger bg-opacity-10 text-danger': user.status === 'BLOCKED'
+                                    }">
+                                        {{ getStatusLabel(user.status) }}
                                     </span>
                                 </td>
                                 <td class="text-end pe-4">
@@ -97,78 +100,80 @@
     </div>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
 import api from '../api/api';
 
-export default {
-    name: "UserManager",
-    setup() {
-        const toast = useToast();
-        return { toast };
-    },
-    data() {
-        return {
-            searchQuery: "",
-            users: [],
-            deleteTarget: { id: null, name: '' }
-        };
-    },
+const toast = useToast();
+const searchQuery = ref("");
+const users = ref([]);
+const deleteTarget = reactive({ id: null, name: '' });
 
-    mounted() {
-        this.loadUsers();
-    },
+const statusLabels = {
+    'ACTIVE': 'Hoạt động',
+    'INACTIVE': 'Chưa kích hoạt',
+    'BLOCKED': 'Bị khóa'
+};
 
-    computed: {
-        filteredUsers() {
-            if (!this.users) return [];
-            const query = this.searchQuery.toLowerCase();
-            return this.users.filter(user => {
-                return (
-                    (user.fullName && user.fullName.toLowerCase().includes(query)) ||
-                    (user.email && user.email.toLowerCase().includes(query)) ||
-                    (user.phone && user.phone.includes(query))
-                );
-            });
-        }
-    },
+const getStatusLabel = (status) => {
+    return statusLabels[status] || 'Không xác định';
+};
 
-    methods: {
-        async loadUsers() {
-            try {
+const formatDate = (dateStr) => {
+    if (!dateStr) return "Chưa cập nhật";
+    return new Date(dateStr).toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+}
 
-                const res = await api.get("/api/v1/accounts");
+const loadUsers = async () => {
+    try {
+        const res = await api.get("/api/v1/accounts");
 
-                if (Array.isArray(res.data)) {
-                    this.users = res.data;
-                } else if (res.data && res.data.result) {
-                    this.users = res.data.result;
-                }
-            } catch (error) {
-                console.error("Lỗi tải người dùng:", error);
-                this.toast.error("Không thể tải danh sách khách hàng!");
-            }
-        },
-
-        openDeleteModal(user) {
-            this.deleteTarget = { id: user.accountId, name: user.fullName };
-        },
-
-        async confirmDelete() {
-            try {
-                await api.delete(`/api/v1/accounts/${this.deleteTarget.id}`);
-                this.toast.success(`Đã xóa khách hàng "${this.deleteTarget.name}" thành công!`);
-                document.getElementById('closeDelUserBtn').click();
-                await this.loadUsers();
-            } catch (error) {
-                this.toast.error("Xóa khách hàng thất bại!");
-            }
-        },
-
-        formatDate(dateStr) {
-            if (!dateStr) return "";
-            return new Date(dateStr).toLocaleDateString('vi-VN');
-        }
+        users.value = Array.isArray(res.data) ? res.data : (res.data.result || []);
+    } catch (error) {
+        console.error("Lỗi tải người dùng:", error);
+        toast.error("Không thể tải danh sách khách hàng!");
     }
 };
+
+const confirmDelete = async () => {
+    try {
+        await api.delete(`/accounts/${deleteTarget.id}`);
+        toast.success(`Đã xóa khách hàng "${deleteTarget.name}" thành công!`);
+
+        const closeBtn = document.getElementById('closeDelUserBtn');
+        if (closeBtn) closeBtn.click();
+
+        await loadUsers();
+    } catch (error) {
+        console.error("Lỗi xóa:", error);
+        toast.error("Xóa khách hàng thất bại!");
+    }
+};
+
+const openDeleteModal = (user) => {
+    deleteTarget.id = user.accountId;
+    deleteTarget.name = user.fullName;
+};
+
+const filteredUsers = computed(() => {
+    const query = searchQuery.value.toLowerCase().trim();
+    if (!query) return users.value;
+
+    return users.value.filter(user => {
+        return (
+            (user.fullName?.toLowerCase().includes(query)) ||
+            (user.email?.toLowerCase().includes(query)) ||
+            (user.phone?.includes(query))
+        );
+    });
+});
+
+onMounted(() => {
+    loadUsers();
+});
 </script>

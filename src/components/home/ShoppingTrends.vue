@@ -12,11 +12,11 @@
         </div>
 
         <div class="trends-grid">
-            <div v-for="book in filteredTrends" :key="book.id" class="trend-card" @click="goToDetail(book.id)">
+            <div v-for="book in trendBooks" :key="book.bookId" class="trend-card" @click="goToDetail(book.bookId)">
                 <div class="trend-img-wrap">
-                    <img :src="book.imageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=500'"
-                        class="trend-img" :alt="book.title" referrerpolicy="no-referrer" />
-                    <button class="cart-btn" aria-label="Thêm vào giỏ" @click.stop="addToCart(book)">
+                    <img :src="book.imageUrl || 'https://via.placeholder.com/210x191'" class="trend-img"
+                        :alt="book.title" referrerpolicy="no-referrer" />
+                    <button class="cart-btn" @click.stop="addToCart(book)">
                         <i class="bi bi-bag-plus"></i>
                     </button>
                 </div>
@@ -24,9 +24,9 @@
                     <p class="trend-title" :title="book.title">{{ book.title }}</p>
                     <div class="trend-rating">
                         <i class="bi bi-star-fill star-icon"></i>
-                        <span class="rating-value">{{ book.rating }} ({{ book.reviewCount }})</span>
+                        <span class="rating-value">{{ book.rating || 5 }} ({{ book.reviewCount || 0 }})</span>
                     </div>
-                    <p class="trend-price">{{ formatPrice(book.salePrice) }}</p>
+                    <p class="trend-price">{{ formatPrice(book.price) }}</p>
                 </div>
             </div>
         </div>
@@ -38,11 +38,17 @@
 </template>
 
     <script setup>
-    import { ref, computed } from 'vue';
+    import { ref, watch, onMounted } from 'vue';
     import { useRouter } from 'vue-router';
-    import books from '../../data/products.json'
+    import { useToast } from 'vue-toastification';
+    import api from '../../api/api'
 
     const router = useRouter();
+    const toast = useToast();
+
+    const currentTab = ref('BESTSELLER');
+    const trendBooks = ref([]);
+    const loading = ref(false)
 
     const tabs = [
         { label: 'Bán chạy', value: 'BESTSELLER' },
@@ -50,10 +56,28 @@
         { label: 'Thịnh hành', value: 'HOT' }
     ];
 
-    const currentTab = ref('BESTSELLER');
+    const fetchData = async () => {
+        loading.value = true;
+        try {
 
-    const filteredTrends = computed(() => {
-        return books.filter(b => b.badge === currentTab.value).slice(0, 5);
+            const response = await api.get('/api/v1/books', {
+                params: {
+                    badge: currentTab.value,
+                    size: 5
+                }
+            });
+
+            trendBooks.value = response.data.result.content || response.data.result || [];
+        } catch (error) {
+            console.error("Lỗi lấy dữ liệu xu hướng:", error);
+            toast.error("Không thể tải dữ liệu xu hướng");
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    watch(currentTab, () => {
+        fetchData();
     });
 
     const formatPrice = (b) => b.toLocaleString('vi-VN') + 'đ';
@@ -61,8 +85,31 @@
     const goToDetail = (id) => router.push(`/product/${id}`);
 
     const addToCart = (b) => {
-        console.log("Đã thêm vào giỏ:", b.title);
+        const cartData = localStorage.getItem('cart');
+        let cart = cartData ? JSON.parse(cartData) : [];
+
+        const index = cart.findIndex(item => item.bookId === book.bookId);
+
+        if (index !== -1) {
+            cart[index].quantity += 1;
+        } else {
+            cart.push({
+                bookId: book.bookId,
+                title: book.title,
+                price: book.price,
+                image: book.imageUrl,
+                quantity: 1
+            });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        window.dispatchEvent(new Event('storage'));
+        toast.success(`Đã thêm "${book.title}" vào giỏ hàng!`);
     };
+
+    onMounted(() => {
+        fetchData();
+    });
 </script>
     <style scoped>
     .shopping-trends {

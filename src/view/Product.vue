@@ -1,6 +1,6 @@
 <template>
   <div class="product-layout">
-    <FilterSidebar :filters="filters" :categoryOptions="categoryOptions" />
+    <FilterSidebar :filters="filters" :categoryOptions="categoryOptions" @apply="applyFiltersAndFetch" />
 
     <main class="product-main">
       <div class="product-header">
@@ -16,27 +16,34 @@
         </div>
       </div>
 
-      <ProductGrid :books="books" />
+      <ProductGrid v-if="books.length > 0" :books="books" />
+      <div v-else class="text-center py-5 text-muted">
+        <p>Không tìm thấy sản phẩm nào phù hợp.</p>
+      </div>
 
-      <ProductPg :pages="pages" :currentPage="currentPage" @changePage="currentPage = $event" />
+      <ProductPg v-if="totalPages > 1" :pages="pagesArray" :currentPage="currentPage" @changePage="handlePageChange" />
     </main>
 
-    <SgSidebar :books="suggestedBooks" />
+    <SgSidebar v-if="suggestedBooks.length > 0" :books="suggestedBooks" />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import allProducts from '../data/products.json'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { useToast } from 'vue-toastification'
+import api from '../api/api.js'
+
 import FilterSidebar from '../components/product/FilterSidebar.vue'
 import ProductGrid from '../components/product/ProductGrid.vue'
 import ProductPg from '../components/product/ProductPg.vue'
 import SgSidebar from '../components/product/SgSidebar.vue'
 
-const books = ref(allProducts)
+const toast = useToast()
 
-const suggestedBooks = ref(allProducts.slice(0, 3))
-
+const books = ref([])
+const allBooks = ref([])
+const suggestedBooks = ref([])
+const categoryOptions = ref([])
 
 const filters = reactive({
   search: '',
@@ -44,24 +51,103 @@ const filters = reactive({
   maxPrice: 1000000,
 })
 
-const categoryOptions = [
-  { label: 'Văn học', value: 'van-hoc' },
-  { label: 'Kinh tế', value: 'kinh-te' },
-  { label: 'Tâm lý', value: 'tam-ly' },
-  { label: 'Ngoại ngữ', value: 'ngoai-ngu' },
-]
+const activeSort = ref('newest')
+const currentPage = ref(1)
+const pageSize = 12
 
+const pagesArray = computed(() => {
+  const totalPages = Math.ceil(books.value.length / pageSize) || 1
+  const pages = []
+
+  for (let i = 1; i <= totalPages; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+const fetchData = async () => {
+  try {
+    const [bookRes, catRes, suggestRes] = await Promise.all([
+      api.get('/api/v1/books', { params: { size: 200 } }),
+      api.get('/api/v1/categories'),
+      api.get('/api/v1/books', { params: { size: 6, sort: 'bestseller' } })
+    ])
+
+    allBooks.value = bookRes.data.result?.content || bookRes.data.result || []
+
+    if (categoryOptions.value.length === 0) {
+      categoryOptions.value = catRes.data.result?.map(cat => ({
+        label: cat.categoryName,
+        value: cat.categoryId
+      })) || []
+    }
+
+    suggestedBooks.value = suggestRes.data.result?.content || suggestRes.data.result || []
+
+    applyFilters()
+  } catch (error) {
+    console.error(error)
+    toast.error("Không thể tải dữ liệu sách")
+  }
+}
+
+
+const applyFilters = () => {
+  let filtered = [...allBooks.value]
+
+
+  if (filters.search?.trim()) {
+    const keyword = filters.search.toLowerCase().trim()
+    filtered = filtered.filter(book =>
+      book.title?.toLowerCase().includes(keyword) ||
+      book.author?.toLowerCase().includes(keyword)
+    )
+  }
+
+
+  if (filters.categories.length > 0) {
+    filtered = filtered.filter(book =>
+      filters.categories.includes(book.categoryId || book.category?.categoryId)
+    )
+  }
+
+
+  filtered = filtered.filter(book => (book.price || 0) <= filters.maxPrice)
+
+
+  if (activeSort.value === 'price-asc') {
+    filtered.sort((a, b) => (a.price || 0) - (b.price || 0))
+  } else if (activeSort.value === 'bestseller') {
+    filtered.sort((a, b) => (b.soldQuantity || 0) - (a.soldQuantity || 0))
+  } else {
+    filtered.sort((a, b) => (b.bookId || 0) - (a.bookId || 0))
+  }
+
+  books.value = filtered
+  currentPage.value = 1
+}
+
+const applyFiltersAndFetch = () => {
+  applyFilters()
+}
+
+const handlePageChange = (page) => {
+  currentPage.value = page
+}
 const sortOptions = [
   { label: 'Mới nhất', value: 'newest' },
   { label: 'Bán chạy', value: 'bestseller' },
   { label: 'Giá thấp - cao', value: 'price-asc' },
 ]
 
-const activeSort = ref('newest')
-const currentPage = ref(1)
-const pages = [1, 2, 3]
-</script>
+watch(() => filters.search, () => {
+  applyFilters()
+})
 
+onMounted(() => {
+  fetchData()
+})
+</script>
 <style scoped>
 .product-layout {
   display: grid;

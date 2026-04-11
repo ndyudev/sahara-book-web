@@ -31,8 +31,8 @@
                         <p class="book-title" :title="book.title">{{ book.title }}</p>
                         <p class="book-author">{{ book.author }}</p>
                         <div class="book-prices">
-                            <span class="price-sale">{{ formatPrice(book.salePrice) }}</span>
-                            <span class="price-original">{{ formatPrice(book.originalPrice) }}</span>
+                            <span class="price-sale">{{ formatPrice(book.price) }}</span>
+                            <span class="price-original">{{ formatPrice(book.price) }}</span>
                         </div>
                     </div>
                 </div>
@@ -44,20 +44,35 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import books from '../../data/products.json'
+import api from '../../api/api'
+
 const router = useRouter();
-
-const flashSaleBooks = computed(() => {
-    return books.filter(b => b.flashSale && b.flashSale.isFlashSale);
-});
-
-
+const flashSaleBooks = ref([]);
 const timeLeft = ref({ hours: '00', minutes: '00', seconds: '00' });
 let timerInterval = null;
 
+const fetchData = async () => {
+    try {
+
+        const response = await api.get('/api/v1/books', { params: { isFlashSale: true } });
+
+
+        if (response.data && response.data.result) {
+            flashSaleBooks.value = response.data.result;
+            updateCountdown();
+        }
+    } catch (error) {
+        console.error("Lỗi lấy dữ liệu Flash Sale:", error);
+    }
+};
 const updateCountdown = () => {
-    
-    const endTime = new Date(flashSaleBooks.value[0]?.flashSale.saleEndTime || new Date()).getTime();
+    if (flashSaleBooks.value.length === 0) return;
+
+
+    const endTimeStr = flashSaleBooks.value[0]?.flashSale?.saleEndTime;
+    if (!endTimeStr) return;
+
+    const endTime = new Date(endTimeStr).getTime();
     const now = new Date().getTime();
     const distance = endTime - now;
 
@@ -72,12 +87,11 @@ const updateCountdown = () => {
     const s = Math.floor((distance % (1000 * 60)) / 1000);
 
     timeLeft.value = {
-        hours: h < 10 ? '0' + h : h.toString(),
-        minutes: m < 10 ? '0' + m : m.toString(),
-        seconds: s < 10 ? '0' + s : s.toString()
+        hours: h.toString().padStart(2, '0'),
+        minutes: m.toString().padStart(2, '0'),
+        seconds: s.toString().padStart(2, '0')
     };
 };
-
 const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
@@ -87,12 +101,12 @@ const goToDetail = (id) => {
 };
 
 onMounted(() => {
-    updateCountdown();
+    fetchData();
     timerInterval = setInterval(updateCountdown, 1000);
 });
 
 onUnmounted(() => {
-    clearInterval(timerInterval);
+    if (timerInterval) clearInterval(timerInterval);
 });
 </script>
 

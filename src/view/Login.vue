@@ -55,7 +55,11 @@
                             <label class="remember-label" for="rememberMe">Ghi nhớ tôi</label>
                         </div>
 
-                        <button type="submit" class="submit-btn">Đăng nhập vào tài khoản</button>
+                        <button type="submit" class="submit-btn" :disabled="isLoading">
+                            <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status"
+                                aria-hidden="true"></span>
+                            Đăng nhập
+                        </button>
 
                     </form>
 
@@ -100,9 +104,10 @@ import { useRouter, useRoute } from 'vue-router'
 import users from '../data/user.json'
 import { useToast } from "vue-toastification"
 
-const toast = useToast()
-const router = useRouter()
-const route = useRoute()
+const toast = useToast();
+const router = useRouter();
+const route = useRoute();
+const isLoading = ref(false);
 
 const showPassword = ref(false)
 const form = reactive({
@@ -111,38 +116,34 @@ const form = reactive({
     remember: false
 })
 
-const handleLogin = () => {
+const handleLogin = async () => {
+    isLoading.value = true;
 
-    const jsonUsers = users;
+    try {
+        await new Promise(r => setTimeout(r, 500))
+        const jsonUsers = users;
+        const localUsers = JSON.parse(localStorage.getItem('sahara-users') || '[]')
+        const allUsers = [...jsonUsers, ...localUsers]
+        const user = allUsers.find(u => u.email === form.email && u.password === form.password);
 
-    const localUsers = JSON.parse(localStorage.getItem('sahara-users') || '[]')
+        if (user) {
+            localStorage.setItem('user-token', 'mock-jwt-token-12345');
+            localStorage.setItem('user-info', JSON.stringify(user));
+            window.dispatchEvent(new Event('strorage'));
+            window.dispatchEvent(new Event('user-info-changed'));
 
-    const allUsers = [...jsonUsers, ...localUsers]
-
-    const user = allUsers.find(u => u.email === form.email && u.password === form.password);
-
-    if (user) {
-        localStorage.setItem('user-token', 'mock-jwt-token-12345');
-
-        localStorage.setItem('user-info', JSON.stringify(user));
-
-        window.dispatchEvent(new Event('strorage'));
-        window.dispatchEvent(new Event('user-info-changed'));
-
-        // Phân quyền admin và user
-        if (user.role === 'ADMIN') {
-            router.push('/admin');
-            toast.success(`Chào mừng ${user.fullname} đến với trang quản trị viên`);
+            if (user.role === 'ADMIN') {
+                toast.success(`Chào mừng ${user.fullname} đến với trang quản trị viên`);
+                router.push('/admin');
+            } else {
+                toast.success(`Chào mừng ${user.fullname || 'bạn'} quay trở lại!`);
+                router.push(route.query.redirect || '/');
+            }
         } else {
-            const redirectPath = route.query.redirect || '/';
-            toast.success(`Chào mừng ${user.fullname || 'bạn'} quay trở lại!`);
-
-            router.push(redirectPath);
+            toast.error('Email hoặc mật khẩu không chính xác. Vui lòng thử lại!');
         }
-
-    } else {
-        toast.error('Email hoặc mật khẩu không chính xác. Vui lòng thử lại!');
+    } finally {
+        isLoading.value = false;
     }
-
 };
 </script>

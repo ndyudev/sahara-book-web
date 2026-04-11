@@ -50,8 +50,9 @@
                       class="btn btn-sm btn-light text-dark rounded-pill px-3 fw-bold d-flex align-items-center gap-1 shadow-sm border-0">
                       Chi tiết
                     </router-link>
-                    
-                    <button @click="deleteInvoice(inv.id)" class="btn btn-sm btn-light text-danger rounded-circle p-2 border-0">
+
+                    <button @click="deleteInvoice(inv.id)"
+                      class="btn btn-sm btn-light text-danger rounded-circle p-2 border-0">
                       <span class="material-symbols-outlined fs-6 d-block">delete</span>
                     </button>
                   </div>
@@ -69,16 +70,33 @@
 </template>
 
 <script>
+import { useToast } from 'vue-toastification';
+import { h } from 'vue';
+
 export default {
   name: "InvoiceManager",
+  setup() {
+    const toast = useToast();
+    return { toast };
+  },
   data() {
     return {
       searchQuery: "",
-      invoices: [] 
+      invoices: []
     };
   },
   mounted() {
     this.loadInvoices();
+  },
+  computed: {
+    filteredInvoices() {
+      const query = this.searchQuery.toLowerCase();
+      return this.invoices.filter(inv => {
+        return inv.id.toLowerCase().includes(query) ||
+          inv.customer.toLowerCase().includes(query) ||
+          inv.orderId.toLowerCase().includes(query);
+      });
+    }
   },
   methods: {
     loadInvoices() {
@@ -86,7 +104,6 @@ export default {
       if (savedInvoices) {
         this.invoices = JSON.parse(savedInvoices);
       } else {
-
         const defaultData = [
           { id: "INV001", orderId: "DH001", customer: "Châu Nhật Duy", date: "26/03/2026", total: "250.000đ", method: "Chuyển khoản", status: "Đã thanh toán" },
           { id: "INV002", orderId: "DH002", customer: "Nguyễn Thế Ngữ", date: "25/03/2026", total: "120.000đ", method: "COD", status: "Chờ thanh toán" },
@@ -98,23 +115,54 @@ export default {
         localStorage.setItem('invoices', JSON.stringify(defaultData));
       }
     },
-    deleteInvoice(id) {
-      if (confirm(`Sếp có chắc muốn xóa hóa đơn ${id} không?`)) {
-        this.invoices = this.invoices.filter(inv => inv.id !== id);
-        localStorage.setItem('invoices', JSON.stringify(this.invoices));
-        alert("Đã xóa hóa đơn thành công!");
-      }
-    }
-  },
-  computed: {
-    filteredInvoices() {
-      const query = this.searchQuery.toLowerCase();
-      return this.invoices.filter(inv => {
-        return inv.id.toLowerCase().includes(query) ||
-          inv.customer.toLowerCase().includes(query) ||
-          inv.orderId.toLowerCase().includes(query);
+    confirmDelete(id) {
+      const self = this; // Giữ tham chiếu đến component
+      const toastId = this.toast.info({
+        component: {
+          render() {
+            return h('div', { class: 'p-1' }, [
+              h('p', { class: 'mb-3 text-white' }, [
+                'Bạn có chắc muốn xóa hóa đơn ',
+                h('b', id),
+                '?'
+              ]),
+              h('div', { class: 'd-flex gap-2' }, [
+                h('button', {
+                  class: 'btn btn-sm btn-danger px-3',
+                  onClick: () => {
+                    self.executeDelete(id);
+                    self.toast.dismiss(toastId); // Đóng toast sau khi xóa
+                  }
+                }, 'Xóa'),
+                h('button', {
+                  class: 'btn btn-sm btn-light border-0 px-3',
+                  onClick: () => self.toast.dismiss(toastId) // Đóng toast khi hủy
+                }, 'Hủy')
+              ])
+            ]);
+          }
+        }
+      }, {
+        timeout: 5000, // Tự đóng sau 5s nếu không chọn
+        closeOnClick: false
       });
+    },
+    executeDelete(id) {
+      this.invoices = this.invoices.filter(inv => inv.id !== id);
+      localStorage.setItem('invoices', JSON.stringify(this.invoices));
+      this.toast.success(`Đã xóa hóa đơn ${id} thành công!`);
     }
   }
-};
+}
 </script>
+
+<style scoped>
+.table thead th {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.badge {
+  font-weight: 500;
+}
+</style>
