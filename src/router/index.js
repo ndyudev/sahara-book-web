@@ -32,7 +32,6 @@ import CategoryCreate from '../view/CategoryCreate.vue'
 import OrderManager from '../view/OrderManager.vue'
 import InvoiceManager from '../view/InvoiceManager.vue'
 import UserManager from '../view/UserManager.vue'
-import UserCreate from '../view/UserCreate.vue'
 
 
 import UserDetail from '../details/UserDetail.vue'
@@ -89,7 +88,6 @@ const routes = [
       { path: 'invoices', name: 'InvoiceManager', component: InvoiceManager },
       { path: 'invoices/:id', name: 'InvoiceDetail', component: InvoiceDetail },
       { path: 'users', name: 'UserManager', component: UserManager },
-      { path: 'users/create', name: 'UserCreate', component: UserCreate },
       { path: 'users/:id', name: 'UserDetail', component: UserDetail }
     ]
   },

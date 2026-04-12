@@ -40,7 +40,7 @@ const menu = [
   { name: 'Danh mục', path: '/admin/categories', icon: 'category' },
   { name: 'Đơn hàng', path: '/admin/orders', icon: 'shopping_bag' },
   { name: 'Hóa đơn', path: '/admin/invoices', icon: 'receipt_long' },
-  { name: 'Khách hàng', path: '/admin/users', icon: 'group' }
+  { name: 'Người dùng', path: '/admin/users', icon: 'group' }
 ]
 
 

@@ -1,11 +1,7 @@
 <template>
     <div>
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold mb-0">Quản lý khách hàng</h3>
-            <router-link to="/admin/users/create"
-                class="btn btn-primary text-white fw-bold d-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm text-decoration-none">
-                <span class="material-symbols-outlined fs-5">person_add</span> Thêm mới
-            </router-link>
+            <h3 class="fw-bold mb-0">Quản lý người dùng</h3>
         </div>
 
         <div class="card border-0 rounded-4 shadow-sm">
@@ -25,7 +21,7 @@
                         <thead class="table-light text-muted small text-uppercase">
                             <tr>
                                 <th class="ps-4 py-3">ID</th>
-                                <th>Khách hàng</th>
+                                <th>Người dùng</th>
                                 <th>Liên hệ</th>
                                 <th>Ngày tham gia</th>
                                 <th>Trạng thái</th>
@@ -72,7 +68,10 @@
                                 </td>
                             </tr>
                             <tr v-if="filteredUsers.length === 0">
-                                <td colspan="6" class="text-center py-5 text-muted">Không tìm thấy khách hàng nào.</td>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <span class="material-symbols-outlined fs-1 d-block mb-2">search_off</span>
+                                    Không tìm thấy người dùng nào.
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -86,7 +85,7 @@
                     <div class="modal-body text-center p-4">
                         <span class="material-symbols-outlined text-danger mb-3"
                             style="font-size: 4rem;">person_remove</span>
-                        <p class="text-muted">Bạn có chắc chắn muốn xóa khách hàng <b>{{ deleteTarget.name }}</b>?</p>
+                        <p class="text-muted">Bạn có chắc chắn muốn xóa người dùng <b>{{ deleteTarget.name }}</b>?</p>
                         <div class="d-flex gap-2 justify-content-center mt-4">
                             <button type="button" class="btn btn-light px-4 fw-bold" data-bs-dismiss="modal"
                                 id="closeDelUserBtn">Hủy</button>
@@ -136,14 +135,14 @@ const loadUsers = async () => {
         users.value = Array.isArray(res.data) ? res.data : (res.data.result || []);
     } catch (error) {
         console.error("Lỗi tải người dùng:", error);
-        toast.error("Không thể tải danh sách khách hàng!");
+        toast.error("Không thể tải danh sách !");
     }
 };
 
 const confirmDelete = async () => {
     try {
-        await api.delete(`/accounts/${deleteTarget.id}`);
-        toast.success(`Đã xóa khách hàng "${deleteTarget.name}" thành công!`);
+        await api.delete(`/api/v1/accounts/${deleteTarget.id}`);
+        toast.success(`Đã xóa người dùng"${deleteTarget.name}" thành công!`);
 
         const closeBtn = document.getElementById('closeDelUserBtn');
         if (closeBtn) closeBtn.click();
@@ -151,7 +150,7 @@ const confirmDelete = async () => {
         await loadUsers();
     } catch (error) {
         console.error("Lỗi xóa:", error);
-        toast.error("Xóa khách hàng thất bại!");
+        toast.error("Xóa thất bại!");
     }
 };
 

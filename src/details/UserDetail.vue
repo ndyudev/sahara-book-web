@@ -4,52 +4,48 @@
             <span class="material-symbols-outlined fs-6">arrow_back</span> Quay lại danh sách
         </router-link>
 
-        <h3 class="fw-bold mb-4">Chi tiết khách hàng: <span class="text-primary">#{{ user.id }}</span></h3>
+        <h3 class="fw-bold mb-4">Chi tiết người dùng: <span class="text-primary">#{{ user.id }}</span></h3>
 
         <div class="row">
             <div class="col-md-8">
                 <div class="card border-0 rounded-4 shadow-sm p-4 mb-4">
                     <h5 class="fw-bold mb-3">Thông tin cá nhân</h5>
                     <div class="row g-3">
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold small text-muted ">Họ và tên khách hàng</label>
-                            <input v-model="user.name" type="text" class="form-control bg-light border-0 py-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Họ và tên</label>
+                            <input v-model="user.fullName" type="text" class="form-control bg-light border-0 py-2">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Email</label>
+                            <label class="form-label fw-bold small text-muted text-uppercase">Tên đăng nhập </label>
+                            <input v-model="user.username" type="text" class="form-control bg-light border-0 py-2"
+                                readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Email </label>
                             <input v-model="user.email" type="email" class="form-control bg-light border-0 py-2">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Số điện thoại</label>
+                            <label class="form-label fw-bold small text-muted text-uppercase ">Mật
+                                khẩu</label>
+                            <input value="••••••••••" type="text"
+                                class="form-control bg-light border-0 py-2 fw-bold text-muted password-highlight"
+                                readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Số điện thoại</label>
                             <input v-model="user.phone" type="text" class="form-control bg-light border-0 py-2">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Ngày sinh</label>
-                            <input v-model="user.birthday" type="date" class="form-control bg-light border-0 py-2">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-muted">Giới tính</label>
-                            <select v-model="user.gender" class="form-select bg-light border-0 py-2">
-                                <option value="Nam">Nam</option>
-                                <option value="Nữ">Nữ</option>
-                                <option value="Khác">Khác</option>
+                            <label class="form-label fw-bold small text-muted text-uppercase">Trạng thái</label>
+                            <select v-model="user.status" class="form-select bg-light border-0 py-2 fw-bold" :class="{
+                                'text-success': user.status === 'ACTIVE',
+                                'text-warning': user.status === 'INACTIVE',
+                                'text-danger': user.status === 'BLOCKED'
+                            }">
+                                <option value="ACTIVE" class="text-success fw-bold">Hoạt động</option>
+                                <option value="INACTIVE" class="text-warning fw-bold">Chưa kích hoạt</option>
+                                <option value="BLOCKED" class="text-danger fw-bold">Bị khóa</option>
                             </select>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold small text-muted">Trạng thái tài khoản</label>
-                            <select v-model="user.status" class="form-select bg-light border-0 py-2">
-                                <option value="Hoạt động">Hoạt động</option>
-                                <option value="Bị khóa">Bị khóa (Tạm dừng)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card border-0 rounded-4 shadow-sm p-4">
-                    <h5 class="fw-bold mb-3 text-uppercase">Địa chỉ giao hàng</h5>
-                    <div class="row g-3">
-                        <div class="col-md-12">
-                            <textarea v-model="user.address" class="form-control bg-light border-0" rows="3"></textarea>
                         </div>
                     </div>
                 </div>
@@ -64,7 +60,7 @@
                         style="cursor: pointer; min-height: 180px;">
                         <div class="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center mb-3"
                             style="width: 120px; height: 120px; overflow: hidden; border: 2px solid #ddd;">
-                            <img :src="user.avatar" class="w-100 h-100 object-fit-cover">
+                            <img :src="user.avatarPreview || user.avatar" class="w-100 h-100 object-fit-cover">
                         </div>
                         <span class="fw-bold text-primary small">Bấm để đổi ảnh</span>
                         <input type="file" ref="fileInput" class="d-none" @change="handleFileUpload" accept="image/*">
@@ -120,22 +116,21 @@ export default {
         return {
             user: {
                 id: "",
-                name: "",
+                fullName: "",
+                username: "",
                 email: "",
+                password: "",
                 phone: "",
-                birthday: "",
-                gender: "",
-                status: "ACTIVE", // Mặc định dùng Enum để khớp Database
+                status: "ACTIVE",
                 address: "",
                 avatar: "",
+                avatarPreview: null,
                 joinDate: ""
             }
         };
     },
     mounted() {
-        const userId = this.$route.params.id;
-        // Gọi đúng tên hàm fetchData bên dưới
-        this.fetchData(userId);
+        this.fetchData(this.$route.params.id);
     },
     methods: {
         async fetchData(id) {
@@ -145,19 +140,19 @@ export default {
 
                 this.user = {
                     id: data.accountId,
-                    name: data.fullName,
+                    fullName: data.fullName,
+                    username: data.username,
                     email: data.email,
+                    password: data.password,
                     phone: data.phone,
                     status: data.status,
-                    birthday: data.birthday || "",
-                    gender: data.gender || "Nam",
                     address: data.address || "",
                     avatar: data.avatar || `https://ui-avatars.com/api/?name=${data.fullName}`,
+                    avatarPreview: null,
                     joinDate: data.createdAt ? new Date(data.createdAt).toLocaleDateString('vi-VN') : "Chưa có"
                 };
             } catch (error) {
-                console.error("Lỗi API:", error);
-                this.toast.error("Không thể lấy thông tin khách hàng từ hệ thống!");
+                this.toast.error("Không thể lấy thông tin khách hàng!");
             }
         },
         triggerUpload() {
@@ -166,37 +161,37 @@ export default {
         handleFileUpload(event) {
             const file = event.target.files[0];
             if (file) {
-                this.user.avatar = URL.createObjectURL(file);
+                this.user.avatarPreview = URL.createObjectURL(file);
             }
         },
         async updateUser() {
-            if (!this.user.name || !this.user.phone) {
-                this.toast.error("Vui lòng không để trống tên và số điện thoại!");
+            if (!this.user.fullName || !this.user.phone) {
+                this.toast.error("Vui lòng nhập đầy đủ thông tin!");
                 return;
             }
             try {
                 const payload = {
-                    fullName: this.user.name,
+                    fullName: this.user.fullName,
+                    email: this.user.email,
                     phone: this.user.phone,
                     status: this.user.status,
-                    birthday: this.user.birthday,
-                    gender: this.user.gender
+                    address: this.user.address
                 };
-                await api.put(`/api/v1/accounts/${this.user.id}`, payload);
-                this.toast.success(`Cập nhật thành công khách hàng "${this.user.name}"`);
-                this.$router.push('/admin/users');
+                const res = await api.put(`/api/v1/accounts/${this.user.id}`, payload);
+                if (res.status === 200 || res.data.code === 1000) {
+                    this.toast.success(`Đã cập nhật: ${this.user.fullName}`);
+                    setTimeout(() => this.$router.push('/admin/users'), 800);
+                }
             } catch (error) {
-                this.toast.error("Cập nhật thất bại, vui lòng thử lại!");
+                this.toast.error("Cập nhật thất bại!");
             }
         },
         async confirmDelete() {
             try {
                 await api.delete(`/api/v1/accounts/${this.user.id}`);
-                // Đóng modal bằng cách giả lập click nút Hủy
                 const closeBtn = document.getElementById('closeDelUserBtn');
                 if (closeBtn) closeBtn.click();
-
-                this.toast.success("Đã xóa khách hàng thành công!");
+                this.toast.success("Đã xóa khách hàng!");
                 this.$router.push('/admin/users');
             } catch (error) {
                 this.toast.error("Xóa thất bại!");
@@ -209,5 +204,16 @@ export default {
 <style scoped>
 .border-dashed {
     border-style: dashed !important;
+}
+
+.password-highlight {
+    background-color: #eef2ff !important;
+
+    color: #e59646 !important;
+
+    border-left: 4px solid #f06800 !important;
+
+    letter-spacing: 2px;
+
 }
 </style>
