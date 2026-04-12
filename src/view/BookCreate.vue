@@ -22,10 +22,10 @@
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold">Danh mục</label>
-              <select v-model="newBook.category" class="form-select bg-light border-0 py-2">
+              <select v-model="newBook.categoryId" class="form-select bg-light border-0 py-2">
                 <option value="">Chọn danh mục</option>
-                <option v-for="cat in categoriesList" :key="cat.name" :value="cat.name">
-                  {{ cat.name }}
+                <option v-for="cat in categoriesList" :key="cat.categoryId" :value="cat.categoryId">
+                  {{ cat.categoryName }}
                 </option>
               </select>
             </div>
@@ -44,7 +44,7 @@
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold">Số lượng trong kho</label>
-              <input v-model="newBook.stock" type="number" class="form-control bg-light border-0 py-2" placeholder="0">
+              <input v-model="newBook.stockQuantity" type="number" class="form-control bg-light border-0 py-2" placeholder="0">
             </div>
           </div>
         </div>
@@ -55,8 +55,8 @@
           <label class="form-label fw-bold d-block text-start">Ảnh bìa sách</label>
           <div @click="triggerUpload" class="border border-2 border-dashed rounded-4 bg-light d-flex flex-column align-items-center justify-content-center overflow-hidden" 
                style="cursor: pointer; min-height: 250px;">
-            <template v-if="newBook.imagePreview">
-                <img :src="newBook.imagePreview" class="w-100 h-100 object-fit-cover">
+            <template v-if="imagePreview">
+                <img :src="imagePreview" class="w-100 h-100 object-fit-cover">
             </template>
             <template v-else>
                 <span class="material-symbols-outlined fs-1 text-muted mb-2">add_a_photo</span>
@@ -67,7 +67,10 @@
         </div>
 
         <div class="d-grid gap-2">
-          <button @click="saveBook" class="btn btn-primary text-white fw-bold py-3 rounded-3 shadow-sm">Lưu sách mới</button>
+          <button @click="saveBook" :disabled="isSaving" class="btn btn-primary text-white fw-bold py-3 rounded-3 shadow-sm">
+            <span v-if="isSaving" class="spinner-border spinner-border-sm me-2"></span>
+            Lưu sách mới
+          </button>
           <button @click="$router.push('/admin/books')" class="btn btn-outline-secondary border-0 py-2">Hủy bỏ</button>
         </div>
       </div>
@@ -75,102 +78,88 @@
   </div>
 </template>
 
-<script>
-
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
+import api from '../api/api'; 
 
-export default {
-  name: "BookCreate",
+const toast = useToast();
+const router = useRouter();
+const fileInput = ref(null);
+const imagePreview = ref(null);
+const selectedFile = ref(null);
+const isSaving = ref(false);
+const categoriesList = ref([]);
 
-  setup() {
-    const toast = useToast();
-    return { toast };
-  },
-  data() {
-    return {
-      categoriesList: [], 
-      newBook: {
-        title: "",
-        author: "",
-        category: "",
-        description: "",
-        price: null,
-        stock: null,
-        imagePreview: null
-      }
+const newBook = ref({
+    title: "",
+    author: "",
+    categoryId: "",
+    description: "",
+    price: null,
+    stockQuantity: null,
+});
+
+const loadCategories = async () => {
+    try {
+        const res = await api.get("/api/v1/categories");
+        categoriesList.value = res.data.result;
+    } catch (error) {
+        console.error("Lỗi tải danh mục:", error);
     }
-  },
-  mounted() {
-    const savedCats = localStorage.getItem('categories');
-    if (savedCats) {
-      this.categoriesList = JSON.parse(savedCats);
-    } else {
-      this.categoriesList = [
-        { name: "Văn học" }, { name: "Kinh tế" }, { name: "Tâm lý học" }, { name: "Khoa học" }, { name: "Thiếu nhi" }
-      ];
-    }
-  },
-  methods: {
-    triggerUpload() {
-      this.$refs.fileInput.click();
-    },
-    handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        this.newBook.imagePreview = URL.createObjectURL(file);
-      }
-    },
-    saveBook() {
+};
 
-      if (!this.newBook.title || !this.newBook.price || !this.newBook.category) {
-        this.toast.error("Sếp vui lòng nhập tên sách, giá và chọn danh mục nhé!");
+onMounted(loadCategories);
+
+const triggerUpload = () => fileInput.value.click();
+
+const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        selectedFile.value = file;
+        imagePreview.value = URL.createObjectURL(file);
+    }
+};
+
+const saveBook = async () => {
+
+    if (!newBook.value.title || !newBook.value.price || !newBook.value.categoryId) {
+        toast.error("Vui lòng điền đầy đủ các thông tin bắt buộc!");
         return;
-      }
-
-      let list = JSON.parse(localStorage.getItem('books'));
-
-      if (!list) {
-        list = [
-            { id: 101, image: "https://via.placeholder.com/150", title: "Đắc Nhân Tâm", category: "Tâm lý học", author: "Dale Carnegie", price: "86.000đ", stock: 45 },
-            { id: 102, image: "https://via.placeholder.com/150", title: "Nhà Lãnh Đạo Không Chức Danh", category: "Kinh tế", author: "Robin Sharma", price: "110.000đ", stock: 12 },
-            { id: 103, image: "https://via.placeholder.com/150", title: "Sapiens - Lược Sử Loài Người", category: "Khoa học", author: "Yuval Noah Harari", price: "255.000đ", stock: 0 },
-            { id: 104, image: "https://via.placeholder.com/150", title: "Số Đỏ", category: "Văn học", author: "Vũ Trọng Phụng", price: "55.000đ", stock: 20 },
-            { id: 105, image: "https://via.placeholder.com/150", title: "Cha Giàu Cha Nghèo", category: "Kinh tế", author: "Robert Kiyosaki", price: "125.000đ", stock: 15 },
-            { id: 106, image: "https://via.placeholder.com/150", title: "Cho Tôi Xin Một Vé Đi Tuổi Thơ", category: "Văn học", author: "Nguyễn Nhật Ánh", price: "65.000đ", stock: 30 },
-            { id: 107, image: "https://via.placeholder.com/150", title: "Doraemon - Tập 1", category: "Thiếu nhi", author: "Fujiko F. Fujio", price: "20.000đ", stock: 100 },
-            { id: 108, image: "https://via.placeholder.com/150", title: "Vũ Trụ", category: "Khoa học", author: "Carl Sagan", price: "350.000đ", stock: 5 }
-        ];
-      }
-
-      const ids = list.map(b => Number(b.id));
-      const nextId = Math.max(...ids) + 1;
-
-      const newBookObj = {
-        id: nextId,
-        title: this.newBook.title,
-        author: this.newBook.author || "Khuyết danh",
-        category: this.newBook.category,
-        price: new Intl.NumberFormat('vi-VN').format(this.newBook.price) + "đ",
-        stock: Number(this.newBook.stock) || 0,
-        image: this.newBook.imagePreview || "https://via.placeholder.com/150",
-        isSale: false 
-      };
-
-      list.unshift(newBookObj);
-      localStorage.setItem('books', JSON.stringify(list));
-
-      this.toast.success("Đã thêm cuốn sách: " + this.newBook.title);
-      this.$router.push('/admin/books');
     }
-  }
-}
+
+    isSaving.value = true;
+    try {
+
+        const payload = {
+            title: newBook.value.title,
+            author: newBook.value.author,
+            categoryId: newBook.value.categoryId,
+            description: newBook.value.description,
+            price: newBook.value.price,
+            stockQuantity: newBook.value.stockQuantity,
+            imageUrl: "" 
+        };
+
+        await api.post("/api/v1/books", payload);
+        
+        toast.success("Thêm sách mới thành công!");
+        router.push('/admin/books'); 
+    } catch (error) {
+        console.error("Lỗi khi tạo sách:", error);
+        toast.error(error.response?.data?.message || "Không thể lưu sách!");
+    } finally {
+        isSaving.value = false;
+    }
+};
 </script>
 
 <style scoped>
 .form-control:focus, .form-select:focus {
   background-color: #fff !important;
-  box-shadow: 0 0 0 0.25rem rgba(255, 178, 122, 0.25);
-  border: 1px solid #ffb27a !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+  border: 1px solid #0d6efd !important;
 }
 .border-dashed {
   border-style: dashed !important;

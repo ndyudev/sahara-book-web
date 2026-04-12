@@ -4,11 +4,12 @@
       <span class="material-symbols-outlined fs-6">arrow_back</span> Quay lại danh sách
     </router-link>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h3 class="fw-bold mb-0">Chi tiết sách: <span class="text-primary">#{{ book.id }}</span></h3>
+    <div v-if="isLoading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2 text-muted">Đang tải thông tin sách...</p>
     </div>
 
-    <div class="row">
+    <div v-else class="row">
       <div class="col-md-8">
         <div class="card border-0 rounded-4 shadow-sm p-4 mb-4">
           <div class="row g-3">
@@ -22,9 +23,9 @@
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold">Danh mục</label>
-              <select v-model="book.category" class="form-select bg-light border-0 py-2">
-                <option v-for="cat in categoriesList" :key="cat.id" :value="cat.name">
-                  {{ cat.name }}
+              <select v-model="book.categoryId" class="form-select bg-light border-0 py-2">
+                <option v-for="cat in categoriesList" :key="cat.categoryId" :value="cat.categoryId">
+                  {{ cat.categoryName }}
                 </option>
               </select>
             </div>
@@ -41,7 +42,7 @@
           <label class="form-label fw-bold d-block text-start">Ảnh bìa sách</label>
           <div @click="triggerUpload" class="border border-2 border-dashed rounded-4 bg-light d-flex align-items-center justify-content-center overflow-hidden mt-2" 
                style="cursor: pointer; min-height: 250px;">
-            <img :src="book.image" class="w-100 h-100 object-fit-cover">
+            <img :src="book.imageUrl || 'https://via.placeholder.com/150'" class="w-100 h-100 object-fit-cover">
             <input type="file" ref="fileInput" class="d-none" @change="handleFileUpload" accept="image/*">
           </div>
           <small class="text-primary fw-bold mt-2 d-block">Bấm để đổi ảnh bìa</small>
@@ -49,21 +50,21 @@
 
         <div class="card border-0 rounded-4 shadow-sm p-4 mb-4">
           <div class="mb-3">
-            <label class="form-label fw-bold">Giá bán (Số nguyên)</label>
-            <input v-model="displayPrice" type="number" class="form-control bg-light border-0 py-2">
-            <small class="text-muted">Giá hiện tại: {{ book.price }}</small>
+            <label class="form-label fw-bold">Giá bán (VNĐ)</label>
+            <input v-model="book.price" type="number" class="form-control bg-light border-0 py-2">
           </div>
           <div>
             <label class="form-label fw-bold">Số lượng tồn</label>
-            <input v-model="book.stock" type="number" class="form-control bg-light border-0 py-2">
+            <input v-model="book.stockQuantity" type="number" class="form-control bg-light border-0 py-2">
           </div>
         </div>
 
         <div class="d-grid gap-2">
-          <button @click="updateBook" class="btn btn-primary text-white fw-bold py-3 rounded-3 shadow-sm">
+          <button @click="updateBook" :disabled="isProcessing" class="btn btn-primary text-white fw-bold py-3 rounded-3 shadow-sm">
+            <span v-if="isProcessing" class="spinner-border spinner-border-sm me-2"></span>
             Cập nhật thông tin
           </button>
-          <button @click="deleteBook" class="btn btn-outline-danger border-0 py-2">
+          <button @click="deleteBook" :disabled="isProcessing" class="btn btn-outline-danger border-0 py-2">
             Xóa cuốn sách này
           </button>
           <hr>
@@ -74,86 +75,108 @@
   </div>
 </template>
 
-<script>
-
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
+import api from '../api/api';
 
-export default {
-  name: "BookDetail",
+const route = useRoute();
+const router = useRouter();
+const toast = useToast();
 
-  setup() {
-    const toast = useToast();
-    return { toast };
-  },
-  data() {
-    return {
-      categoriesList: [],
-      displayPrice: 0, 
-      book: { id: "", title: "", author: "", category: "", description: "", price: "", stock: 0, image: "" }
-    }
-  },
-  mounted() {
-    const savedCats = localStorage.getItem('categories');
-    this.categoriesList = savedCats ? JSON.parse(savedCats) : [
-        { name: "Văn học" }, { name: "Kinh tế" }, { name: "Tâm lý học" }, { name: "Khoa học" }, { name: "Thiếu nhi" }
-    ];
+const fileInput = ref(null);
+const isLoading = ref(true);
+const isProcessing = ref(false);
+const categoriesList = ref([]);
+const book = ref({
+  bookId: null,
+  title: "",
+  author: "",
+  categoryId: "",
+  description: "",
+  price: 0,
+  stockQuantity: 0,
+  imageUrl: ""
+});
 
-    const bookId = this.$route.params.id;
-    this.fetchBook(bookId);
-  },
-  methods: {
-    fetchBook(id) {
-      const list = JSON.parse(localStorage.getItem('books')) || [];
-      const found = list.find(b => String(b.id) === String(id));
-      if (found) {
-        this.book = { ...found };
 
-        this.displayPrice = parseInt(this.book.price.replace(/\D/g, '')) || 0;
-      } else {
-     
-        this.toast.error("Không tìm thấy sách này!");
-        this.$router.push('/admin/books');
-      }
-    },
-    triggerUpload() { this.$refs.fileInput.click(); },
-    handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (file) { 
-          this.book.image = URL.createObjectURL(file); 
-      }
-    },
-    updateBook() {
+const initData = async () => {
+  isLoading.value = true;
+  const bookId = route.params.id;
+  
+  try {
 
-      if (!this.book.title || !this.displayPrice) {
-        this.toast.error("Vui lòng nhập đầy đủ tên sách và giá bán!");
-        return;
-      }
-      
-      let list = JSON.parse(localStorage.getItem('books')) || [];
-      const index = list.findIndex(b => String(b.id) === String(this.book.id));
+    const [catRes, bookRes] = await Promise.all([
+      api.get("/api/v1/categories"),
+      api.get(`/api/v1/books/${bookId}`)
+    ]);
 
-      if (index !== -1) {
+    categoriesList.value = catRes.data.result;
+    
+    const data = bookRes.data.result;
+    book.value = {
+      ...data,
+      categoryId: data.category ? data.category.categoryId : ""
+    };
+  } catch (error) {
+    console.error(error);
+    toast.error("Không thể tải thông tin sách!");
+    router.push('/admin/books');
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-        this.book.price = new Intl.NumberFormat('vi-VN').format(this.displayPrice) + "đ";
-        list[index] = this.book;
-        localStorage.setItem('books', JSON.stringify(list));
-        
-        this.toast.success("Đã cập nhật thông tin sách thành công!");
-        this.$router.push('/admin/books');
-      }
-    },
-    deleteBook() {
+onMounted(initData);
 
-      if (confirm(`Bạn có chắc muốn xóa cuốn sách này không?`)) {
-        let list = JSON.parse(localStorage.getItem('books')) || [];
-        list = list.filter(b => String(b.id) !== String(this.book.id));
-        localStorage.setItem('books', JSON.stringify(list));
+const triggerUpload = () => fileInput.value.click();
+const handleFileUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    book.value.imageUrl = URL.createObjectURL(file);
+    toast.info("Đã chọn ảnh mới. Nhấn Cập nhật để lưu.");
+  }
+};
 
-        this.toast.success("Đã xóa cuốn sách khỏi hệ thống!");
-        this.$router.push('/admin/books');
-      }
+const updateBook = async () => {
+  if (!book.value.title || !book.value.price) {
+    toast.error("Vui lòng nhập tên và giá sách!");
+    return;
+  }
+
+  isProcessing.value = true;
+  try {
+    await api.put(`/api/v1/books/${book.value.bookId}`, {
+        title: book.value.title,
+        author: book.value.author,
+        categoryId: book.value.categoryId,
+        description: book.value.description,
+        price: book.value.price,
+        stockQuantity: book.value.stockQuantity,
+        imageUrl: book.value.imageUrl
+    });
+    toast.success("Cập nhật thành công!");
+    router.push('/admin/books');
+  } catch (error) {
+    toast.error("Lỗi khi cập nhật!");
+  } finally {
+    isProcessing.value = false;
+  }
+};
+
+const deleteBook = async () => {
+  if (confirm(`Bạn có chắc muốn xóa cuốn "${book.value.title}"?`)) {
+    isProcessing.value = true;
+    try {
+      await api.delete(`/api/v1/books/${book.value.bookId}`);
+      toast.success("Đã xóa sách!");
+      router.push('/admin/books');
+    } catch (error) {
+      toast.error("Xóa thất bại!");
+    } finally {
+      isProcessing.value = false;
     }
   }
-}
+};
 </script>
-
