@@ -117,38 +117,57 @@ const triggerUpload = () => fileInput.value.click();
 const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-        selectedFile.value = file;
-        imagePreview.value = URL.createObjectURL(file);
+        selectedFile.value = file; 
+        imagePreview.value = URL.createObjectURL(file); 
     }
 };
 
 const saveBook = async () => {
-
+   
     if (!newBook.value.title || !newBook.value.price || !newBook.value.categoryId) {
-        toast.error("Vui lòng điền đầy đủ các thông tin bắt buộc!");
+        toast.error("Vui lòng nhập Tên, Giá và Danh mục sếp ơi!");
         return;
     }
 
     isSaving.value = true;
     try {
+        const formData = new FormData();
+        
+        formData.append('title', String(newBook.value.title).trim());
+        formData.append('author', String(newBook.value.author || "Khuyết danh").trim());
 
-        const payload = {
-            title: newBook.value.title,
-            author: newBook.value.author,
-            categoryId: newBook.value.categoryId,
-            description: newBook.value.description,
-            price: newBook.value.price,
-            stockQuantity: newBook.value.stockQuantity,
-            imageUrl: "" 
-        };
+        formData.append('categoryId', Number(newBook.value.categoryId));
+        
+        formData.append('description', String(newBook.value.description || "").trim());
 
-        await api.post("/api/v1/books", payload);
+        formData.append('price', Number(newBook.value.price));
+        
+        formData.append('stockQuantity', Number(newBook.value.stockQuantity || 0));
+
+        if (selectedFile.value) {
+            formData.append('file', selectedFile.value);
+        } else {
+
+            const blob = new Blob([''], { type: 'image/jpeg' });
+            formData.append('file', blob, 'default.jpg');
+        }
+
+        const response = await api.post("/api/v1/books", formData);
         
         toast.success("Thêm sách mới thành công!");
         router.push('/admin/books'); 
+        
     } catch (error) {
-        console.error("Lỗi khi tạo sách:", error);
-        toast.error(error.response?.data?.message || "Không thể lưu sách!");
+        console.error("Chi tiết lỗi 400:", error.response);
+        
+        const serverMsg = error.response?.data?.message;
+        const validationErrors = error.response?.data?.result; 
+        
+        toast.error(serverMsg || "Lỗi 400: Dữ liệu gửi lên không đúng định dạng BE yêu cầu");
+        
+        if (validationErrors) {
+            console.table(validationErrors); 
+        }
     } finally {
         isSaving.value = false;
     }
