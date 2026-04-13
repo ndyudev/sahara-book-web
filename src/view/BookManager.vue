@@ -181,6 +181,7 @@ const searchQuery = ref("");
 const selectedCategory = ref("");
 const categoriesList = ref([]);
 const books = ref([]);
+const isLoading = ref(false);
 
 const saleForm = ref({
     bookId: null,
@@ -193,49 +194,55 @@ const saleForm = ref({
 
 const deleteTarget = ref({ id: null, title: '' });
 
-const formatTimeVN = (dateStr) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' ngày ' + date.toLocaleDateString('vi-VN');
+const loadBooks = async () => {
+    isLoading.value = true;
+    try {
+        const res = await api.get("/api/v1/books");
+
+        books.value = res.data.result || [];
+    } catch (error) {
+        toast.error("Lỗi khi tải danh sách sách!");
+    } finally {
+        isLoading.value = false;
+    }
 };
 
-const openSaleModal = (book) => {
-    saleForm.value.bookId = book.bookId;
-    saleForm.value.bookName = book.title;
-    saleForm.value.isSale = book.isSale || false;
-    saleForm.value.discountPrice = book.discountPrice || '';
-    saleForm.value.startDate = book.startDate || '';
-    saleForm.value.endDate = book.endDate || '';
-};
-
-
-const saveSaleConfig = () => {
+const saveSaleConfig = async () => {
     if (!saleForm.value.discountPrice || !saleForm.value.startDate || !saleForm.value.endDate) {
         toast.error("Vui lòng điền đầy đủ thông tin giảm giá!");
         return;
     }
 
-    const index = books.value.findIndex(b => b.bookId === saleForm.value.bookId);
-    if (index !== -1) {
-        books.value[index].isSale = true;
-        books.value[index].discountPrice = Number(saleForm.value.discountPrice);
-        books.value[index].startDate = saleForm.value.startDate;
-        books.value[index].endDate = saleForm.value.endDate;
+    try {
 
+        await api.put(`/api/v1/books/${saleForm.value.bookId}`, {
 
-        localStorage.setItem('books', JSON.stringify(books.value));
+            discountPrice: Number(saleForm.value.discountPrice),
+            startDate: saleForm.value.startDate,
+            endDate: saleForm.value.endDate,
+            isSale: true
+        });
+
         toast.success(`Đã thiết lập giảm giá cho: ${saleForm.value.bookName}`);
         document.getElementById('closeModalBtn').click();
+        await loadBooks(); 
+    } catch (error) {
+        console.error(error);
+        toast.error("Không thể lưu cấu hình giảm giá lên server!");
     }
 };
 
-
-const loadBooks = async () => {
+const cancelSale = async () => {
     try {
-        const res = await api.get("/api/v1/books");
-        books.value = res.data.result;
+        await api.put(`/api/v1/books/${saleForm.value.bookId}`, {
+            isSale: false,
+            discountPrice: null
+        });
+        toast.success("Đã hủy chương trình giảm giá");
+        document.getElementById('closeModalBtn').click();
+        await loadBooks();
     } catch (error) {
-        toast.error("Lỗi khi tải danh sách sách!");
+        toast.error("Lỗi khi hủy Sale");
     }
 };
 
@@ -248,21 +255,33 @@ const loadCategories = async () => {
     }
 };
 
-const openDeleteModal = (book) => {
-    deleteTarget.value = { id: book.bookId, title: book.title };
-};
-
 const executeDelete = async () => {
     try {
         await api.delete(`/api/v1/books/${deleteTarget.value.id}`);
         toast.success(`Đã xóa xong sách: ${deleteTarget.value.title}`);
         document.getElementById('closeDeleteBtn').click();
-        await loadBooks(); // Tải lại danh sách
+        await loadBooks();
     } catch (error) {
         toast.error("Xóa thất bại!");
     }
 };
 
+const formatTimeVN = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + date.toLocaleDateString('vi-VN');
+};
+
+const openSaleModal = (book) => {
+    saleForm.value = {
+        bookId: book.bookId,
+        bookName: book.title,
+        isSale: book.isSale || false,
+        discountPrice: book.discountPrice || '',
+        startDate: book.startDate || '',
+        endDate: book.endDate || ''
+    };
+};
 
 const formatPrice = (price) => {
     if (!price) return "0đ";
@@ -273,13 +292,9 @@ const filteredBooks = computed(() => {
     const query = searchQuery.value.toLowerCase();
     const category = selectedCategory.value;
     return books.value.filter(book => {
-        const title = book.title ? book.title.toLowerCase() : "";
-        const author = book.author ? book.author.toLowerCase() : "";
-        const matchesSearch = title.includes(query) || author.includes(query);
-
-        const bookCatName = book.category ? book.category.categoryName : "";
+        const matchesSearch = (book.title?.toLowerCase().includes(query)) || (book.author?.toLowerCase().includes(query));
+        const bookCatName = book.categoryName || (book.category ? book.category.categoryName : "");
         const matchesCategory = category === "" || bookCatName === category;
-
         return matchesSearch && matchesCategory;
     });
 });

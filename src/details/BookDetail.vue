@@ -89,6 +89,8 @@ const fileInput = ref(null);
 const isLoading = ref(true);
 const isProcessing = ref(false);
 const categoriesList = ref([]);
+const selectedFile = ref(null); 
+
 const book = ref({
   bookId: null,
   title: "",
@@ -97,30 +99,28 @@ const book = ref({
   description: "",
   price: 0,
   stockQuantity: 0,
-  imageUrl: ""
+  imageUrl: "",
+  status: "ACTIVE" 
 });
-
 
 const initData = async () => {
   isLoading.value = true;
   const bookId = route.params.id;
-  
   try {
-
     const [catRes, bookRes] = await Promise.all([
       api.get("/api/v1/categories"),
       api.get(`/api/v1/books/${bookId}`)
     ]);
 
     categoriesList.value = catRes.data.result;
-    
     const data = bookRes.data.result;
+    
     book.value = {
       ...data,
-      categoryId: data.category ? data.category.categoryId : ""
+
+      categoryId: data.categoryId || (data.category ? data.category.categoryId : "")
     };
   } catch (error) {
-    console.error(error);
     toast.error("Không thể tải thông tin sách!");
     router.push('/admin/books');
   } finally {
@@ -131,10 +131,12 @@ const initData = async () => {
 onMounted(initData);
 
 const triggerUpload = () => fileInput.value.click();
+
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (file) {
-    book.value.imageUrl = URL.createObjectURL(file);
+    selectedFile.value = file; 
+    book.value.imageUrl = URL.createObjectURL(file); 
     toast.info("Đã chọn ảnh mới. Nhấn Cập nhật để lưu.");
   }
 };
@@ -147,19 +149,34 @@ const updateBook = async () => {
 
   isProcessing.value = true;
   try {
-    await api.put(`/api/v1/books/${book.value.bookId}`, {
-        title: book.value.title,
-        author: book.value.author,
-        categoryId: book.value.categoryId,
-        description: book.value.description,
-        price: book.value.price,
-        stockQuantity: book.value.stockQuantity,
-        imageUrl: book.value.imageUrl
+
+    const formData = new FormData();
+    
+    formData.append('title', book.value.title);
+    formData.append('author', book.value.author || "");
+    formData.append('categoryId', book.value.categoryId);
+    formData.append('description', book.value.description || "");
+    formData.append('price', book.value.price);
+    formData.append('stockQuantity', book.value.stockQuantity);
+    formData.append('status', book.value.status); 
+
+    if (selectedFile.value) {
+        formData.append('file', selectedFile.value);
+    }
+
+
+    await api.put(`/api/v1/books/${book.value.bookId}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
     });
+
     toast.success("Cập nhật thành công!");
     router.push('/admin/books');
   } catch (error) {
-    toast.error("Lỗi khi cập nhật!");
+    console.error(error);
+    const msg = error.response?.data?.message || "Lỗi khi cập nhật!";
+    toast.error(msg);
   } finally {
     isProcessing.value = false;
   }
