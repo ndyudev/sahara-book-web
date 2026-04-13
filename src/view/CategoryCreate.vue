@@ -8,23 +8,22 @@
 
     <div class="card border-0 rounded-4 shadow-sm p-4" style="max-width: 600px;">
       <div class="mb-3">
-        <label class="form-label fw-bold small text-muted">Tên danh mục</label>
+        <label class="form-label fw-bold small text-muted text-uppercase">Tên danh mục</label>
         <input v-model="newCategory.categoryName" type="text" class="form-control bg-light border-0 py-2"
           placeholder="Nhập tên danh mục...">
       </div>
-
       <div class="mb-3">
-        <label class="form-label fw-bold small text-muted">Chỉ mục</label>
-        <select v-model="newCategory.parentId" class="form-select bg-light border-0 py-2">
-          <option :value="null"></option>
-          <option v-for="cat in categoriesList" :key="cat.categoryId" :value="cat.categoryId">
-            {{ cat.categoryName }}
-          </option>
+        <label class="form-label fw-bold small text-muted text-uppercase">Trạng thái</label>
+        <select v-model="newCategory.status" class="form-select bg-light border-0 py-2 fw-bold" :class="{
+          'text-success': newCategory.status === 'ACTIVE',
+          'text-warning': newCategory.status === 'DISABLE'
+        }">
+          <option value="ACTIVE" class="text-success fw-bold">Hoạt động</option>
+          <option value="DISABLE" class="text-warning fw-bold">Tạm ngưng</option>
         </select>
       </div>
-
       <div class="mb-4">
-        <label class="form-label fw-bold small text-muted">Mô tả danh mục</label>
+        <label class="form-label fw-bold small text-muted  text-uppercase">Mô tả danh mục</label>
         <textarea v-model="newCategory.description" class="form-control bg-light border-0" rows="3"
           placeholder="Mô tả ngắn về danh mục..."></textarea>
       </div>
@@ -50,17 +49,19 @@ const toast = useToast();
 
 const newCategory = ref({
   categoryName: "",
+  status: "",
   description: ""
 });
 const saveCategory = async () => {
   if (!newCategory.value.categoryName) {
-    toast.error("Vui lòn nhập tên danh mục!");
+    toast.error("Vui lòng nhập tên danh mục!");
     return;
   }
 
   try {
     await api.post("/api/v1/categories", {
       categoryName: newCategory.value.categoryName,
+      status: newCategory.value.status,
       description: newCategory.value.description
     });
     toast.success("Thêm danh mục thành công!");

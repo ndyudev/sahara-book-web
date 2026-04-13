@@ -11,17 +11,16 @@
         <label class="form-label fw-bold small text-muted text-uppercase">Tên danh mục</label>
         <input v-model="category.categoryName" type="text" class="form-control bg-light border-0 py-2">
       </div>
-
       <div class="mb-3">
-        <label class="form-label fw-bold small text-muted text-uppercase">Chỉ mục</label>
-        <select v-model="category.parentId" class="form-select bg-light border-0 py-2">
-          <option :value="null"></option>
-          <option v-for="cat in availableParents" :key="cat.id" :value="cat.id">
-            {{ cat.name }}
-          </option>
+        <label class="form-label fw-bold small text-muted text-uppercase">Trạng thái</label>
+        <select v-model="category.status" class="form-select bg-light border-0 py-2 fw-bold" :class="{
+          'text-success': category.status === 'ACTIVE',
+          'text-warning': category.status === 'DISABLE'
+        }">
+          <option value="ACTIVE" class="text-success fw-bold">Hoạt động</option>
+          <option value="DISABLE" class="text-warning fw-bold">Tạm ngưng</option>
         </select>
       </div>
-
       <div class="mb-4">
         <label class="form-label fw-bold small text-muted text-uppercase">Mô tả danh mục</label>
         <textarea v-model="category.description" class="form-control bg-light border-0" rows="4"></textarea>
@@ -76,6 +75,7 @@ const toast = useToast();
 const category = ref({
   categoryId: "",
   categoryName: "",
+  status: "",
   description: ""
 });
 
@@ -101,6 +101,7 @@ const updateCategory = async () => {
   try {
     await api.put(`/api/v1/categories/${category.value.categoryId}`, {
       categoryName: category.value.categoryName,
+      status: category.value.status,
       description: category.value.description
     });
     toast.success("Cập nhật thành công!");

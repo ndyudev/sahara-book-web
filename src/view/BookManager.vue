@@ -92,7 +92,9 @@
                                 </td>
                             </tr>
                             <tr v-if="filteredBooks.length === 0">
-                                <td colspan="7" class="text-center py-5 text-muted">Không tìm thấy sách nào.</td>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <span class="material-symbols-outlined fs-1 d-block mb-2">search_off</span>
+                                    Không tìm thấy sách nào.</td>
                             </tr>
                         </tbody>
                     </table>

@@ -38,7 +38,8 @@
                 <td class="text-muted small">{{ cat.description }}</td>
                 <td>
                   <span class="badge"
-                    :class="cat.status === 'ACTIVE' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'">
+                    :class="cat.status === 'ACTIVE' ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning'">
+                    <i class="bi bi-circle-fill me-1 small"></i>
                     {{ cat.status === 'ACTIVE' ? 'Đang hoạt động' : 'Tạm ngưng' }}
                   </span>
                 </td>
@@ -54,7 +55,10 @@
                 </td>
               </tr>
               <tr v-if="filteredCategories.length === 0">
-                <td colspan="5" class="text-center py-5 text-muted">Không tìm thấy danh mục nào.</td>
+                <td colspan="5" class="text-center py-5 text-muted">
+                  <span class="material-symbols-outlined fs-1 d-block mb-2">search_off</span>
+                  Không tìm thấy danh mục nào.
+                </td>
               </tr>
             </tbody>
           </table>
@@ -106,19 +110,20 @@ const fetchData = async () => {
 const openDeleteModal = (cat) => {
   deleteTarget.value = { id: cat.categoryId, name: cat.categoryName };
 };
-
 const confirmDelete = async () => {
   try {
     await api.delete(`/api/v1/categories/${deleteTarget.value.id}`);
-    toast.success(`Đã xóa danh mục "${deleteTarget.value.name}"`);
+
 
     const closeBtn = document.getElementById('closeDelCatBtn');
     if (closeBtn) closeBtn.click();
 
+    toast.success(`Đã xóa danh mục "${deleteTarget.value.name}" thành công!`);
     await fetchData();
   } catch (error) {
     console.error("Lỗi xóa:", error);
-    toast.error("Xóa thất bại!");
+    toast.error(`Không thể xóa! Danh mục "${deleteTarget.value.name}" đang chứa sản phẩm.`);
+
   }
 };
 
